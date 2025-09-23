@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ok/components/my_drawer_tile.dart';
+import 'package:ok/pages/settings_page.dart';
 
 class MyDrawer extends StatelessWidget {
   const MyDrawer({super.key});
@@ -26,10 +27,12 @@ class MyDrawer extends StatelessWidget {
                 color: Theme.of(context).colorScheme.secondary,
               ),
 
-              MyDrawerTile(),
+              MyDrawerTile(title: "H O M E", icon: Icons.home, onTap: (){Navigator.pop(context);}),
+              MyDrawerTile(title: "P E R F I L", icon: Icons.person, onTap: (){},),
+              MyDrawerTile(title: "C O N F I G U R A Ç Õ E S", icon: Icons.settings, onTap: (){Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (context) => SettingsPage(),),);},),
           ],
         ),
       )
     );
   }
-}
+} 
