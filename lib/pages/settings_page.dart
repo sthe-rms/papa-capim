@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ok/components/my_settings_tile.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -6,8 +7,15 @@ class SettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context){
     return Scaffold(
-      appBar: AppBar(title: Text("C O N F I G U R A Ç Õ E S"),),
-      
-    );
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      appBar: AppBar(title: Text("C O N F I G U R A Ç Õ E S"), foregroundColor: Theme.of(context).colorScheme.primary,),
+      body: Column(
+        children: [
+        
+        ],
+
+
+      ),);
+
   }
 }

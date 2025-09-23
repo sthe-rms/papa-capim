@@ -10,27 +10,28 @@ class MyDrawer extends StatelessWidget {
     return Drawer(
       backgroundColor:Theme.of(context).colorScheme.surface,
       child: SafeArea(
-        child: Column(
-           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 50.0),
-              child: Icon(
-                Icons.person,
-                size: 72,
-                color: Theme.of(context).colorScheme.primary,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 25.0),
+          child: Column(
+             children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 50.0),
+                child: Icon(
+                  Icons.person,
+                  size: 72,
+                  color: Theme.of(context).colorScheme.primary,
+                  ),
                 ),
-              ),
+          
+                Divider(color: Theme.of(context).colorScheme.secondary),
 
-              Divider(
-                indent: 25,
-                endIndent: 25,
-                color: Theme.of(context).colorScheme.secondary,
-              ),
-
-              MyDrawerTile(title: "H O M E", icon: Icons.home, onTap: (){Navigator.pop(context);}),
-              MyDrawerTile(title: "P E R F I L", icon: Icons.person, onTap: (){},),
-              MyDrawerTile(title: "C O N F I G U R A Ç Õ E S", icon: Icons.settings, onTap: (){Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (context) => SettingsPage(),),);},),
-          ],
+                const SizedBox(height: 10),
+          
+                MyDrawerTile(title: "H O M E", icon: Icons.home, onTap: (){Navigator.pop(context);}),
+                MyDrawerTile(title: "P E R F I L", icon: Icons.person, onTap: (){},),
+                MyDrawerTile(title: "C O N F I G U R A Ç Õ E S", icon: Icons.settings, onTap: (){Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (context) => SettingsPage(),),);},),
+            ],
+          ),
         ),
       )
     );
