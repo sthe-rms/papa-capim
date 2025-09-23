@@ -10,7 +10,22 @@ class LoginPage extends StatefulWidget{
 class _LoginPageState extends State<LoginPage>{
   @override
   Widget build(BuildContext context){
-    return Scaffold();
+    return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      body: SafeArea(
+        child: Center(
+          child: Column(
+            children: [
+              Icon(
+                Icons.account_circle,
+                key: const ValueKey(72),
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ]
+          ),
+        ),
+      ),
+    );
   }
 }
 
