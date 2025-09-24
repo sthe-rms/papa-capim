@@ -14,8 +14,8 @@ class _ProfilePageState extends State<ProfilePage> {
       appBar: AppBar(
         title: Text("P E R F I L")
       )
-      body: Center(
-        child: Text(widget.uid),),
+      /*body: Center(
+        child: Text(widget.uid),),*/
     );
   }
 }

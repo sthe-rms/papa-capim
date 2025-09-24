@@ -2,16 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:ok/components/my_button.dart';
 import 'package:ok/components/my_text_field.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class RegisterPage extends StatefulWidget {
+  const RegisterPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _RegisterPageState extends State<RegisterPage> {
+  final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController senhaController = TextEditingController();
+  final TextEditingController confirmarSenhaController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -30,9 +32,9 @@ class _LoginPageState extends State<LoginPage> {
                   key: const ValueKey(72),
                   color: Theme.of(context).colorScheme.primary,
                 ),
-                const SizedBox(height: 50),
+                const SizedBox(height: 25),
                 Text(
-                  "Bem-vindo de volta!",
+                  "Vamos criar sua conta!",
                   style: TextStyle(
                     color: (Theme.of(context).colorScheme.primary),
                     fontSize: 16,
@@ -40,39 +42,36 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 const SizedBox(height: 25),
                 MyTextField(
+                  controller: nameController,
+                  hintText: "Digite o nome",
+                  obscureText: false,
+                ),
+                const SizedBox(height: 25),
+                MyTextField(
                   controller: emailController,
-                  hintText: "Digite o email...",
+                  hintText: "Digite o email",
                   obscureText: false,
                 ),
                 const SizedBox(height: 10),
                 MyTextField(
                   controller: senhaController,
-                  hintText: "Digite a senha...",
+                  hintText: "Digite a senha",
                   obscureText: true,
                 ),
                 const SizedBox(height: 10),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Text(
-                    "Esqueceu a senha?",
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
-                  ),
+                MyTextField(
+                  controller: confirmarSenhaController,
+                  hintText: "Confirme a senha",
+                  obscureText: true,
                 ),
                 const SizedBox(height: 10),
-                MyButton(
-                  onTap: () {},
-                  text: "Entrar",
-                ),
+                MyButton(onTap: () {}, text: "Cadastrar"),
                 const SizedBox(height: 50),
-                  Row(
+                Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      "Não tem uma conta?",
+                      "Já é um membro?",
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.bold,
@@ -83,16 +82,16 @@ class _LoginPageState extends State<LoginPage> {
                     GestureDetector(
                       onTap: () {},
                       child: Text(
-                      "Registre-se",
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
+                        "Faça o login agora.",
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
                       ),
                     ),
-                    ),
-                  ]
-                  )
+                  ],
+                ),
               ],
             ),
           ),
