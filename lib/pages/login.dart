@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:ok/components/my_button.dart';
-import 'package:ok/components/my_text_field.dart';
+import 'package:papa_capim/components/my_button.dart';
+import 'package:papa_capim/components/my_text_field.dart';
 
 class LoginPage extends StatefulWidget {
-final void Function()? onTap;
+  final void Function()? onTap;
 
   const LoginPage({super.key, required this.onTap});
 
@@ -65,12 +65,9 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
                 const SizedBox(height: 10),
-                MyButton(
-                  onTap: () {},
-                  text: "Entrar", 
-                ),
+                MyButton(onTap: () {}, text: "Entrar"),
                 const SizedBox(height: 50),
-                  Row(
+                Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
@@ -85,16 +82,16 @@ class _LoginPageState extends State<LoginPage> {
                     GestureDetector(
                       onTap: widget.onTap,
                       child: Text(
-                      "Registre-se",
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
+                        "Registre-se",
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
                       ),
                     ),
-                    ),
-                  ]
-                  )
+                  ],
+                ),
               ],
             ),
           ),

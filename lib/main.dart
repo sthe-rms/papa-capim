@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:ok/pages/register.dart';
-import 'package:ok/services/auth/login_ou_register.dart';
-import 'package:ok/themes/theme.dart';
-import 'package:ok/pages/home_page.dart';
-import 'package:ok/pages/login.dart';
+import 'package:papa_capim/pages/register.dart';
+import 'package:papa_capim/services/auth/login_ou_register.dart';
+import 'package:papa_capim/themes/theme.dart';
+import 'package:papa_capim/pages/home_page.dart';
+import 'package:papa_capim/pages/login.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'core/providers/profile_provider.dart';
 
 void main() {
   runApp(const MyApp());

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:ok/components/my_button.dart';
-import 'package:ok/components/my_text_field.dart';
+import 'package:papa_capim/components/my_button.dart';
+import 'package:papa_capim/components/my_text_field.dart';
 
 class RegisterPage extends StatefulWidget {
-final void Function()? onTap;
+  final void Function()? onTap;
 
   const RegisterPage({super.key, required this.onTap});
 
@@ -15,7 +15,8 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController senhaController = TextEditingController();
-  final TextEditingController confirmarSenhaController = TextEditingController();
+  final TextEditingController confirmarSenhaController =
+      TextEditingController();
 
   @override
   Widget build(BuildContext context) {
