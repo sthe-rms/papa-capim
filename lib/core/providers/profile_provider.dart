@@ -2,33 +2,20 @@ import 'package:flutter/material.dart';
 import '../models/user_model.dart';
 import '../services/api_service.dart';
 
-enum ProfileState { Initial, Loading, Loaded, Error }
-
 class ProfileProvider with ChangeNotifier {
+  // O Provider agora depende diretamente do ApiService para buscar os dados.
   final ApiService _apiService = ApiService();
 
-  User? _user;
-  User? get user => _user;
-
-  ProfileState _state = ProfileState.Initial;
-  ProfileState get state => _state;
-
-  String _errorMessage = '';
-  String get errorMessage => _errorMessage;
-
-  Future<void> fetchProfileData() async {
+  /// Este método busca os dados do perfil na API e retorna um objeto User.
+  /// É o equivalente direto ao `databaseProvider.userProfile()` do seu colega.
+  Future<User> getUserProfile() async {
     try {
-      _state = ProfileState.Loading;
-      notifyListeners(); // Avisa a UI que está carregando
-
-      _user = await _apiService.getMyProfile(); // Chama o serviço
-
-      _state = ProfileState.Loaded;
-      notifyListeners(); // Avisa a UI que os dados chegaram
+      final user = await _apiService.getMyProfile();
+      return user;
     } catch (e) {
-      _errorMessage = e.toString();
-      _state = ProfileState.Error;
-      notifyListeners(); // Avisa a UI que deu erro
+      // Em caso de erro, relançamos a exceção para que a tela possa tratá-la.
+      print('Erro ao buscar perfil no provider: $e');
+      throw Exception('Falha ao carregar o perfil do usuário.');
     }
   }
 }

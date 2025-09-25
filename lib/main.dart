@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:papa_capim/pages/register.dart';
+import 'package:papa_capim/core/providers/profile_provider.dart';
+import 'package:papa_capim/pages/login.dart';
+import 'package:papa_capim/pages/profile_page.dart';
 import 'package:papa_capim/services/auth/login_ou_register.dart';
 import 'package:papa_capim/themes/theme.dart';
-import 'package:papa_capim/pages/home_page.dart';
-import 'package:papa_capim/pages/login.dart';
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'core/providers/profile_provider.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: [ChangeNotifierProvider(create: (_) => ProfileProvider())],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -19,8 +22,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: LoginOrRegister(),
-      theme: ThemeData.light(),
+
+      home: const LoginOrRegister(),
+      theme: ThemeData.dark(),
     );
   }
 }
