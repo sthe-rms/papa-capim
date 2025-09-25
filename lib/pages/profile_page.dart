@@ -11,9 +11,8 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("P E R F I L")
-      )
+      appBar: AppBar(title: Text("P E R F I L")),
+      //criando branch leandro
       /*body: Center(
         child: Text(widget.uid),),*/
     );
