@@ -1,37 +1,38 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../models/user_model.dart'; // Importe seu modelo
+import 'package:papa_capim/core/models/user_model.dart';
+import 'package:papa_capim/core/services/secure_storage_service.dart'; // <<< IMPORTE O SERVIÇO
 
 class ApiService {
-  final String _baseUrl = "https://api.papacapim.just.pro.br";
+  final String _baseUrl = "https://api.papacapim.just.pro.br/";
+  final SecureStorageService _storageService = SecureStorageService(); // <<< CRIE UMA INSTÂNCIA
 
-  // IMPORTANTE: O token precisa ser obtido após o login e armazenado
-  // de forma segura (ex: flutter_secure_storage).
-  // Por agora, vamos simular que você já tem o token.
-  Future<String> _getAuthToken() async {
-    // Lógica para pegar o token salvo no dispositivo
-    // Exemplo: final token = await SecureStorage.read('token');
-    return 'SEU_TOKEN_DE_AUTENTICACAO_AQUI'; // Substitua pelo token real
+  // Função modificada para ler o token do armazenamento seguro
+  Future<String> _getRequiredAuthToken() async {
+    final token = await _storageService.readToken();
+    if (token == null) {
+      throw Exception('Token de autenticação não encontrado. Faça o login novamente.');
+    }
+    return token;
   }
 
   Future<User> getMyProfile() async {
-    final token = await _getAuthToken();
+    final token = await _getRequiredAuthToken();
+
     final response = await http.get(
       Uri.parse('$_baseUrl/users/me'),
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token', // A API exige um token de autorização
+        'Authorization': 'Bearer $token',
       },
     );
 
     if (response.statusCode == 200) {
-      // Se a chamada foi bem sucedida, decodifica o JSON e cria um User
       return User.fromJson(jsonDecode(response.body));
+    } else if (response.statusCode == 401) {
+      throw Exception('Sessão expirada. Faça o login novamente.');
     } else {
-      // Se a chamada falhou, lança uma exceção.
-      throw Exception('Falha ao carregar os dados do perfil.');
+      throw Exception('Falha ao carregar dados do perfil (Cód: ${response.statusCode})');
     }
   }
-
-  // Você pode adicionar outros métodos aqui: getBirds(), postSighting(), etc.
 }
