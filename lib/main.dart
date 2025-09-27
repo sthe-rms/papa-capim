@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:papa_capim/core/providers/profile_provider.dart';
 import 'package:papa_capim/core/services/api_service.dart';
-import 'package:papa_capim/core/services/auth_service.dart'; // Importe o AuthService
+import 'package:papa_capim/core/services/auth_service.dart';
 import 'package:papa_capim/services/auth/login_ou_register.dart';
 import 'package:provider/provider.dart';
 
@@ -10,7 +10,6 @@ void main() {
     MultiProvider(
       providers: [
         Provider<ApiService>(create: (_) => ApiService()),
-        // Registre o AuthService para que ele possa ser usado em outras partes do app
         Provider<AuthService>(
           create: (context) => AuthService(context.read<ApiService>()),
         ),

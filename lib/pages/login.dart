@@ -18,54 +18,36 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController senhaController = TextEditingController();
-
-  // Variável para controlar o estado de loading
   bool _isLoading = false;
 
-  // Função de login corrigida
   void login(BuildContext context) async {
-    // Pega o AuthService que foi registrado no main.dart
     final authService = Provider.of<AuthService>(context, listen: false);
-
-    // Inicia o loading
     setState(() {
       _isLoading = true;
     });
 
     try {
-      // Tenta fazer o login usando o controller correto
       bool success = await authService.login(
         emailController.text,
         senhaController.text,
       );
 
-      // Se o login for bem-sucedido, navega para a HomePage
       if (mounted && success) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const HomePage()),
         );
-      } else if (mounted) {
-        // Mostra um erro se o login falhar
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('E-mail ou senha inválidos.'),
-            backgroundColor: Colors.red,
-          ),
-        );
       }
     } catch (e) {
       if (mounted) {
-        // Mostra um erro genérico
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Ocorreu um erro: ${e.toString()}'),
+            content: Text(e.toString().replaceAll('Exception: ', '')),
             backgroundColor: Colors.red,
           ),
         );
       }
     } finally {
-      // Para o loading, independentemente do resultado
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -94,7 +76,6 @@ class _LoginPageState extends State<LoginPage> {
                 const SizedBox(height: 50),
                 Text(
                   "Bem-vindo de volta!",
-                  // CORREÇÃO: O fontSize foi colocado dentro do TextStyle()
                   style: TextStyle(
                     color: themeData().colorScheme.primary,
                     fontSize: 16,
@@ -113,7 +94,6 @@ class _LoginPageState extends State<LoginPage> {
                   obscureText: true,
                 ),
                 const SizedBox(height: 10),
-                // CORREÇÃO: Removido o 'const' para permitir a função themeData()
                 Align(
                   alignment: Alignment.centerRight,
                   child: Text(
