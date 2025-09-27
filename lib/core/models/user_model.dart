@@ -1,7 +1,7 @@
 class User {
   final int id;
   final String name;
-  final String login; // CORREÇÃO: Alterado de 'email' para 'login'
+  final String login; 
 
   User({required this.id, required this.name, required this.login});
 

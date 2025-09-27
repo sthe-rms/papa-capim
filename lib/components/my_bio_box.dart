@@ -17,7 +17,7 @@ class MyBioBox extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: themeData().colorScheme.primary, // Cor ajustada para o tema
+        color: themeData().colorScheme.primary, 
         borderRadius: BorderRadius.circular(8),
       ),
       padding: const EdgeInsets.only(left: 15, bottom: 15),
@@ -38,8 +38,6 @@ class MyBioBox extends StatelessWidget {
               ),
             ],
           ),
-
-          // Texto (valor)
           Text(text),
         ],
       ),

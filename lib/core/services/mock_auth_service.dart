@@ -5,11 +5,9 @@ class MockAuthService {
   final String _validPassword = '123';
 
   // Um token JWT (JSON Web Token) falso, mas com a aparência de um real.
-  // Você pode usar este mesmo token para seus testes.
   final String _fakeJwtToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IlVzdS_DoXJpbyBkZSBUZXN0ZSIsImlhdCI6MTUxNjIzOTAyMn0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
 
   Future<String> login(String email, String password) async {
-    // Simula o tempo de espera de uma chamada de rede
     await Future.delayed(const Duration(seconds: 2));
 
     if (email == _validEmail && password == _validPassword) {

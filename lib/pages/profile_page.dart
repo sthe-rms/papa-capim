@@ -26,7 +26,7 @@ class _ProfilePageState extends State<ProfilePage> {
         title: const Text("P E R F I L"),
         backgroundColor: Theme.of(
           context,
-        ).colorScheme.surface, // Use surface para consistência
+        ).colorScheme.surface,
         elevation: 0,
       ),
       body: Center(

@@ -20,7 +20,6 @@ class ProfileProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      // Correção: Usar o método getMyProfile que já existe no seu ApiService
       _user = await _apiService.getMyProfile();
     } catch (e) {
       _errorMessage = e.toString();
