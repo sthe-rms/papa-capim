@@ -3,6 +3,7 @@ import 'package:papa_capim/components/my_button.dart';
 import 'package:papa_capim/components/my_text_field.dart';
 import 'package:papa_capim/core/services/auth_service.dart';
 import 'package:papa_capim/pages/home_page.dart';
+import 'package:provider/provider.dart';
 
 // <<< 1. Nomes das classes alterados para RegisterPage >>>
 class RegisterPage extends StatefulWidget {
@@ -19,13 +20,15 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController nomeController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController senhaController = TextEditingController();
-  final TextEditingController confirmarSenhaController = TextEditingController();
-  final AuthService _authService = AuthService();
+  final TextEditingController confirmarSenhaController =
+      TextEditingController();
 
   bool _isLoading = false;
 
   // <<< 3. Criada a nova função _register() >>>
   void _register() async {
+    final authService = Provider.of<AuthService>(context, listen: false);
+
     // Validação inicial para verificar se as senhas são iguais
     if (senhaController.text != confirmarSenhaController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -43,7 +46,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
     try {
       // Chama o método de registro do nosso serviço
-      await _authService.register(
+      await authService.register(
         nomeController.text,
         emailController.text,
         senhaController.text,
@@ -82,7 +85,8 @@ class _RegisterPageState extends State<RegisterPage> {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 25.0),
           child: Center(
-            child: SingleChildScrollView( // Evita que o teclado cubra os campos
+            child: SingleChildScrollView(
+              // Evita que o teclado cubra os campos
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

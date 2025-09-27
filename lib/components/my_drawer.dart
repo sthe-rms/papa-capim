@@ -1,6 +1,8 @@
+import 'package:papa_capim/pages/profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:papa_capim/components/my_drawer_tile.dart';
 import 'package:papa_capim/pages/settings_page.dart';
+import 'package:papa_capim/themes/theme.dart';
 
 class MyDrawer extends StatelessWidget {
   const MyDrawer({super.key});
@@ -8,7 +10,7 @@ class MyDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: themeData().colorScheme.surface,
       child: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 25.0),
@@ -19,11 +21,11 @@ class MyDrawer extends StatelessWidget {
                 child: Icon(
                   Icons.person,
                   size: 72,
-                  color: Theme.of(context).colorScheme.primary,
+                  color: themeData().colorScheme.primary,
                 ),
               ),
 
-              Divider(color: Theme.of(context).colorScheme.secondary),
+              Divider(color: themeData().colorScheme.secondary),
 
               const SizedBox(height: 10),
 
@@ -39,6 +41,12 @@ class MyDrawer extends StatelessWidget {
                 icon: Icons.person,
                 onTap: () {
                   Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ProfilePage(),
+                    ),
+                  );
                 },
               ),
               MyDrawerTile(

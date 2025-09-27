@@ -3,19 +3,30 @@ import '../models/user_model.dart';
 import '../services/api_service.dart';
 
 class ProfileProvider with ChangeNotifier {
-  // O Provider agora depende diretamente do ApiService para buscar os dados.
-  final ApiService _apiService = ApiService();
+  final ApiService _apiService;
+  User? _user;
+  bool _isLoading = false;
+  String? _errorMessage;
 
-  /// Este método busca os dados do perfil na API e retorna um objeto User.
-  /// É o equivalente direto ao `databaseProvider.userProfile()` do seu colega.
-  Future<User> getUserProfile() async {
+  ProfileProvider(this._apiService);
+
+  User? get user => _user;
+  bool get isLoading => _isLoading;
+  String? get errorMessage => _errorMessage;
+
+  Future<void> fetchProfile() async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
     try {
-      final user = await _apiService.getMyProfile();
-      return user;
+      // Correção: Usar o método getMyProfile que já existe no seu ApiService
+      _user = await _apiService.getMyProfile();
     } catch (e) {
-      // Em caso de erro, relançamos a exceção para que a tela possa tratá-la.
-      print('Erro ao buscar perfil no provider: $e');
-      throw Exception('Falha ao carregar o perfil do usuário.');
+      _errorMessage = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 }

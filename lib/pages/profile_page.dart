@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:papa_capim/components/my_bio_box.dart';
 import 'package:provider/provider.dart';
-import '../../../core/models/user_model.dart';
-import '../../../core/providers/profile_provider.dart';
+import '../core/providers/profile_provider.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -12,99 +11,95 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  late final profileProvider = Provider.of<ProfileProvider>(
-    context,
-    listen: false,
-  );
-
-  User? user;
-  String? _errorMessage;
-  bool _isLoading = true;
-
   @override
   void initState() {
     super.initState();
-    loadUser();
-  }
-
-  Future<void> loadUser() async {
-    try {
-      user = await profileProvider.getUserProfile();
-    } catch (e) {
-      _errorMessage = e.toString();
-    }
-
-    if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
-    }
+    // Chama o método para buscar o perfil assim que a página for construída
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<ProfileProvider>(context, listen: false).fetchProfile();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    // 1. Mostra um Scaffold vazio enquanto carrega ou se houver erro no carregamento inicial
-    if (_isLoading) {
-      return Scaffold(
-        appBar: AppBar(),
-        body: const Center(child: CircularProgressIndicator()),
-      );
-    }
-
-    if (_errorMessage != null) {
-      return Scaffold(
-        appBar: AppBar(),
-        body: Center(child: Text('Ocorreu um erro: $_errorMessage')),
-      );
-    }
-
-    // 2. Constrói a tela principal quando os dados do usuário já foram carregados
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        title: Text(
-          user!.name,
-        ), // Agora é seguro usar '!', pois já verificamos o loading/erro
-        foregroundColor: Theme.of(context).colorScheme.primary,
+        title: const Text("P E R F I L"),
+        backgroundColor: Theme.of(context).colorScheme.background,
+        elevation: 0,
       ),
-      body: ListView(
-        children: [
-          const SizedBox(height: 10),
-          // Username handle
-          Center(
-            child: Text(
-              '@${user!.name}',
-              style: TextStyle(color: Theme.of(context).colorScheme.primary),
-            ),
-          ),
+      body: Center(
+        // O Consumer<ProfileProvider> vai reconstruir a UI
+        // sempre que o provider notificar uma mudança (ex: dados carregados)
+        child: Consumer<ProfileProvider>(
+          builder: (context, provider, child) {
+            // Se estiver carregando, mostra o indicador de progresso
+            if (provider.isLoading) {
+              return const CircularProgressIndicator();
+            }
 
-          const SizedBox(height: 20),
+            // Se houver uma mensagem de erro, a exibe
+            if (provider.errorMessage != null) {
+              return Text(
+                provider.errorMessage!,
+                style: const TextStyle(color: Colors.red),
+              );
+            }
 
-          // Profile picture
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 25.0),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.secondary,
-                borderRadius: BorderRadius.circular(25), // VÍRGULA CORRIGIDA
-              ),
-              padding: const EdgeInsets.all(25),
-              child: Icon(
-                Icons.person,
-                size: 72,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-            ),
-          ),
+            // Se o usuário for nulo (e não houver erro), mostra uma mensagem padrão
+            if (provider.user == null) {
+              return const Text(
+                "Não foi possível carregar os dados do perfil.",
+              );
+            }
 
-          const SizedBox(height: 20),
+            // Se tudo deu certo, mostra a UI do perfil com os dados
+            return ListView(
+              children: [
+                const SizedBox(height: 50),
+                // Ícone do perfil
+                const Icon(Icons.person, size: 72),
+                const SizedBox(height: 10),
 
-          // Bio
-          MyBioBox(
-            // ACESSO AO CAMPO 'BIO' CORRIGIDO
-            text: user?.bio ?? 'Nenhuma biografia informada.',
-          ),
-        ],
+                // E-mail do usuário
+                Text(
+                  provider.user!.email,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.grey[700]),
+                ),
+                const SizedBox(height: 50),
+
+                // Detalhes do usuário
+                Padding(
+                  padding: const EdgeInsets.only(left: 25.0),
+                  child: Text(
+                    'Meus Detalhes',
+                    style: TextStyle(color: Colors.grey[600]),
+                  ),
+                ),
+
+                // Caixa com o nome de usuário
+                MyBioBox(
+                  text: provider.user!.name,
+                  sectionName: 'Nome de usuário',
+                  onPressed: () {
+                    // Lógica para editar o nome de usuário aqui
+                  },
+                ),
+
+                // Caixa com a bio
+                MyBioBox(
+                  text: 'Bio vazia',
+                  sectionName: 'Bio',
+                  onPressed: () {
+                    // Lógica para editar a bio aqui
+                  },
+                ),
+                const SizedBox(height: 50),
+              ],
+            );
+          },
+        ),
       ),
     );
   }

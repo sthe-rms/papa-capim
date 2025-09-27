@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:papa_capim/themes/theme.dart';
 import 'package:papa_capim/components/my_button.dart';
 import 'package:papa_capim/components/my_text_field.dart';
-import 'package:papa_capim/core/services/auth_service.dart'; // <<< IMPORTE O AUTH_SERVICE
-import 'package:papa_capim/pages/home_page.dart'; // <<< IMPORTE A HOME_PAGE
+import 'package:papa_capim/core/services/auth_service.dart';
+import 'package:papa_capim/pages/home_page.dart';
+import 'package:provider/provider.dart';
 
 class LoginPage extends StatefulWidget {
   final void Function()? onTap;
@@ -16,43 +18,54 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController senhaController = TextEditingController();
-  final AuthService _authService = AuthService(); // <<< CRIE UMA INSTÂNCIA DO SERVIÇO
 
-  bool _isLoading = false; // Variável para controlar o estado de loading
+  // Variável para controlar o estado de loading
+  bool _isLoading = false;
 
-  // Função de login
-  void _login() async {
-    // Mostra o indicador de loading
+  // Função de login corrigida
+  void login(BuildContext context) async {
+    // Pega o AuthService que foi registrado no main.dart
+    final authService = Provider.of<AuthService>(context, listen: false);
+
+    // Inicia o loading
     setState(() {
       _isLoading = true;
     });
 
     try {
-      // Chama o método de login do nosso serviço
-      await _authService.login(
+      // Tenta fazer o login usando o controller correto
+      bool success = await authService.login(
         emailController.text,
         senhaController.text,
       );
 
       // Se o login for bem-sucedido, navega para a HomePage
-      if (mounted) {
+      if (mounted && success) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const HomePage()),
         );
+      } else if (mounted) {
+        // Mostra um erro se o login falhar
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('E-mail ou senha inválidos.'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     } catch (e) {
-      // Se der erro, mostra uma mensagem para o usuário
       if (mounted) {
+        // Mostra um erro genérico
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(e.toString().replaceAll('Exception: ', '')),
+            content: Text('Ocorreu um erro: ${e.toString()}'),
             backgroundColor: Colors.red,
           ),
         );
       }
     } finally {
-      // Garante que o loading para, mesmo que dê erro
+      // Para o loading, independentemente do resultado
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -64,7 +77,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: themeData().colorScheme.surface,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 25.0),
@@ -72,19 +85,18 @@ class _LoginPageState extends State<LoginPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // ... (seu código de UI continua o mesmo)
-                
                 const SizedBox(height: 50),
                 Icon(
                   Icons.account_circle,
-                  key: const ValueKey(72),
+                  size: 72,
                   color: Theme.of(context).colorScheme.primary,
                 ),
                 const SizedBox(height: 50),
                 Text(
                   "Bem-vindo de volta!",
+                  // CORREÇÃO: O fontSize foi colocado dentro do TextStyle()
                   style: TextStyle(
-                    color: (Theme.of(context).colorScheme.primary),
+                    color: themeData().colorScheme.primary,
                     fontSize: 16,
                   ),
                 ),
@@ -101,25 +113,22 @@ class _LoginPageState extends State<LoginPage> {
                   obscureText: true,
                 ),
                 const SizedBox(height: 10),
+                // CORREÇÃO: Removido o 'const' para permitir a função themeData()
                 Align(
                   alignment: Alignment.centerRight,
                   child: Text(
                     "Esqueceu a senha?",
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.primary,
+                      color: themeData().colorScheme.primary,
                       fontWeight: FontWeight.bold,
                       fontSize: 12,
                     ),
                   ),
                 ),
                 const SizedBox(height: 10),
-
-                // <<< MODIFICAÇÃO IMPORTANTE AQUI
-                // Se estiver carregando, mostra um CircularProgressIndicator, senão, mostra o botão
                 _isLoading
                     ? const CircularProgressIndicator()
-                    : MyButton(onTap: _login, text: "Entrar"),
-
+                    : MyButton(onTap: () => login(context), text: "Entrar"),
                 const SizedBox(height: 50),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -127,7 +136,7 @@ class _LoginPageState extends State<LoginPage> {
                     Text(
                       "Não tem uma conta?",
                       style: TextStyle(
-                        color: Theme.of(context).colorScheme.primary,
+                        color: themeData().colorScheme.primary,
                         fontWeight: FontWeight.bold,
                         fontSize: 12,
                       ),
@@ -138,7 +147,7 @@ class _LoginPageState extends State<LoginPage> {
                       child: Text(
                         "Registre-se",
                         style: TextStyle(
-                          color: Theme.of(context).colorScheme.primary,
+                          color: themeData().colorScheme.primary,
                           fontWeight: FontWeight.bold,
                           fontSize: 12,
                         ),

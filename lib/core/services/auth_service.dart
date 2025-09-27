@@ -1,49 +1,47 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:papa_capim/core/services/api_service.dart';
 import 'package:papa_capim/core/services/secure_storage_service.dart';
 
 class AuthService {
+  final ApiService _apiService;
   final SecureStorageService _storageService = SecureStorageService();
 
-  // --- Mock Data (Para Testes) ---
-  final String _validEmail = 'teste@teste.com';
-  final String _validPassword = '123';
-  final String _fakeJwtToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IlVzdS_DoXJpbyBkZSBUZXN0ZSIsImlhdCI6MTUxNjIzOTAyMn0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
+  AuthService(this._apiService);
 
-  Future<void> login(String email, String password) async {
-    await Future.delayed(const Duration(seconds: 2));
+  // --- MÉTODO DE LOGIN (CORRIGIDO) ---
+  Future<bool> login(String email, String password) async {
+    // Agora usa o getter público 'baseUrl'
+    final response = await http.post(
+      Uri.parse('${_apiService.baseUrl}/auth/login'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'email': email, 'password': password}),
+    );
 
-    if (email == _validEmail && password == _validPassword) {
-      await _storageService.writeToken(_fakeJwtToken);
-      print('Mock Login: Sucesso! Token de teste foi salvo.');
-    } else {
-      print('Mock Login: Falhou! Credenciais inválidas.');
-      throw Exception('Email ou senha inválidos');
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final token = data['token'];
+      if (token != null) {
+        await _storageService.writeToken(token);
+        return true;
+      }
     }
+    return false;
   }
 
-  // <<< NOVO MÉTODO DE REGISTRO >>>
+  // --- MÉTODO DE REGISTRO (ADICIONADO) ---
   Future<void> register(String name, String email, String password) async {
-    // Simula a espera da API
-    await Future.delayed(const Duration(seconds: 2));
+    final response = await http.post(
+      Uri.parse('${_apiService.baseUrl}/users'), // Endpoint de registro
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'name': name, 'email': email, 'password': password}),
+    );
 
-    // Simula uma validação: não permite registrar um email que já "existe"
-    if (email == _validEmail) {
-      print('Mock Register: Falhou! Email já cadastrado.');
-      throw Exception('Este email já está em uso.');
+    if (response.statusCode != 201) {
+      // 201 Created é o status de sucesso aqui
+      // Lança uma exceção com a mensagem de erro da API, se houver
+      final errorData = jsonDecode(response.body);
+      throw Exception(errorData['message'] ?? 'Falha ao registrar.');
     }
-
-    // Se o email for novo, o registro é um "sucesso".
-    // Para simplificar, um registro bem-sucedido já faz o login automaticamente.
-    await _storageService.writeToken(_fakeJwtToken);
-    print('Mock Register: Sucesso para o usuário $name! Token de teste foi salvo.');
-  }
-
-
-  Future<void> logout() async {
-    await _storageService.deleteToken();
-  }
-
-  Future<bool> isLoggedIn() async {
-    final token = await _storageService.readToken();
-    return token != null;
   }
 }
