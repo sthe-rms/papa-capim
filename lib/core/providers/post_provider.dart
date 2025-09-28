@@ -60,7 +60,7 @@ class PostProvider with ChangeNotifier {
       } else {
         await _apiService.likePost(postId);
       }
-      // Atualizar estado local
+
       notifyListeners();
     } catch (e) {
       _errorMessage = e.toString();

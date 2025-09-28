@@ -37,7 +37,6 @@ class PostCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header do Post
           Row(
             children: [
               CircleAvatar(
@@ -84,7 +83,7 @@ class PostCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          // Mensagem
+
           Text(
             post['message'],
             style: TextStyle(
@@ -94,10 +93,10 @@ class PostCard extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
-          // Ações (Like e Reply)
+  
           Row(
             children: [
-              // Like Button
+           
               IconButton(
                 onPressed: onLike,
                 icon: Icon(
@@ -117,7 +116,7 @@ class PostCard extends StatelessWidget {
               ),
               const SizedBox(width: 20),
 
-              // Reply Button
+             
               IconButton(
                 onPressed: onReply,
                 icon: Icon(
