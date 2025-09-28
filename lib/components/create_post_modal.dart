@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:papa_capim/core/providers/feed_provider.dart';
 import 'package:papa_capim/themes/theme.dart';
+import 'package:provider/provider.dart';
 
 class CreatePostModal extends StatefulWidget {
   const CreatePostModal({super.key});
@@ -10,6 +12,43 @@ class CreatePostModal extends StatefulWidget {
 
 class _CreatePostModalState extends State<CreatePostModal> {
   final TextEditingController _messageController = TextEditingController();
+  bool _isLoading = false;
+
+  void _createPost() async {
+    if (_messageController.text.trim().isEmpty) {
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await Provider.of<FeedProvider>(
+        context,
+        listen: false,
+      ).createPost(_messageController.text.trim());
+
+      if (mounted) {
+        Navigator.pop(context, true);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao criar postagem: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,11 +98,15 @@ class _CreatePostModalState extends State<CreatePostModal> {
                 hintStyle: TextStyle(color: themeData().colorScheme.tertiary),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: themeData().colorScheme.tertiary),
+                  borderSide: BorderSide(
+                    color: themeData().colorScheme.tertiary,
+                  ),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: themeData().colorScheme.primary),
+                  borderSide: BorderSide(
+                    color: themeData().colorScheme.primary,
+                  ),
                 ),
                 filled: true,
                 fillColor: themeData().colorScheme.secondary,
@@ -73,33 +116,25 @@ class _CreatePostModalState extends State<CreatePostModal> {
             const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  if (_messageController.text.trim().isNotEmpty) {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: const Text('Postagem criada com sucesso!'),
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : ElevatedButton(
+                      onPressed: _createPost,
+                      style: ElevatedButton.styleFrom(
                         backgroundColor: themeData().colorScheme.primary,
+                        padding: const EdgeInsets.symmetric(vertical: 15),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
-                    );
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: themeData().colorScheme.primary,
-                  padding: const EdgeInsets.symmetric(vertical: 15),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: Text(
-                  'Publicar',
-                  style: TextStyle(
-                    color: themeData().colorScheme.surface,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
+                      child: Text(
+                        'Publicar',
+                        style: TextStyle(
+                          color: themeData().colorScheme.surface,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
             ),
           ],
         ),

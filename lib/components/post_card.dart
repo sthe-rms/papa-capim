@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:papa_capim/core/models/post_model.dart';
 import 'package:papa_capim/themes/theme.dart';
 
 class PostCard extends StatelessWidget {
-  final Map<String, dynamic> post;
+  final Post post;
   final VoidCallback onLike;
   final VoidCallback onReply;
 
@@ -13,8 +14,7 @@ class PostCard extends StatelessWidget {
     required this.onReply,
   });
 
-  String _formatTimeAgo(String isoDate) {
-    final date = DateTime.parse(isoDate);
+  String _formatTimeAgo(DateTime date) {
     final now = DateTime.now();
     final difference = now.difference(date);
 
@@ -43,7 +43,8 @@ class PostCard extends StatelessWidget {
                 radius: 20,
                 backgroundColor: themeData().colorScheme.primary,
                 child: Text(
-                  post['userName'].toString().substring(0, 1).toUpperCase(),
+                  // Usando a primeira letra do login, pois é o dado que temos
+                  post.userLogin.substring(0, 1).toUpperCase(),
                   style: TextStyle(
                     color: themeData().colorScheme.surface,
                     fontWeight: FontWeight.bold,
@@ -55,15 +56,16 @@ class PostCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Exibindo o userLogin, pois não temos o nome completo aqui
                     Text(
-                      post['userName'],
+                      post.userLogin,
                       style: TextStyle(
                         color: themeData().colorScheme.primary,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     Text(
-                      '@${post['userLogin']}',
+                      '@${post.userLogin}',
                       style: TextStyle(
                         color: themeData().colorScheme.tertiary,
                         fontSize: 12,
@@ -73,7 +75,7 @@ class PostCard extends StatelessWidget {
                 ),
               ),
               Text(
-                _formatTimeAgo(post['createdAt']),
+                _formatTimeAgo(post.createdAt),
                 style: TextStyle(
                   color: themeData().colorScheme.tertiary,
                   fontSize: 12,
@@ -83,9 +85,8 @@ class PostCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-
           Text(
-            post['message'],
+            post.message,
             style: TextStyle(
               color: themeData().colorScheme.primary,
               fontSize: 14,
@@ -93,22 +94,22 @@ class PostCard extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
-  
           Row(
             children: [
-           
               IconButton(
                 onPressed: onLike,
                 icon: Icon(
-                  post['isLiked'] ? Icons.favorite : Icons.favorite_border,
-                  color: post['isLiked'] 
-                      ? Colors.red 
+                  post.isLiked ?? false
+                      ? Icons.favorite
+                      : Icons.favorite_border,
+                  color: post.isLiked ?? false
+                      ? Colors.red
                       : themeData().colorScheme.tertiary,
                   size: 20,
                 ),
               ),
               Text(
-                post['likesCount'].toString(),
+                (post.likesCount ?? 0).toString(),
                 style: TextStyle(
                   color: themeData().colorScheme.tertiary,
                   fontSize: 12,
@@ -116,7 +117,6 @@ class PostCard extends StatelessWidget {
               ),
               const SizedBox(width: 20),
 
-             
               IconButton(
                 onPressed: onReply,
                 icon: Icon(
@@ -126,7 +126,7 @@ class PostCard extends StatelessWidget {
                 ),
               ),
               Text(
-                post['repliesCount'].toString(),
+                '0', // O número de respostas ainda não está disponível no modelo
                 style: TextStyle(
                   color: themeData().colorScheme.tertiary,
                   fontSize: 12,

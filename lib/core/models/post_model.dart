@@ -1,12 +1,13 @@
 class Post {
   final int id;
   final String userLogin;
-  final int? postId; 
+  final int? postId;
   final String message;
   final DateTime createdAt;
   final DateTime updatedAt;
-  final int? likesCount; 
-  final bool? isLiked; 
+  final int? likesCount;
+  final bool? isLiked;
+  final int? likeId;
 
   Post({
     required this.id,
@@ -17,6 +18,7 @@ class Post {
     required this.updatedAt,
     this.likesCount,
     this.isLiked,
+    this.likeId,
   });
 
   factory Post.fromJson(Map<String, dynamic> json) {
@@ -29,6 +31,7 @@ class Post {
       updatedAt: DateTime.parse(json['updated_at']),
       likesCount: json['likes_count'],
       isLiked: json['is_liked'],
+      likeId: json['like_id'],
     );
   }
 
