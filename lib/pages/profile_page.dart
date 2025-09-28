@@ -47,9 +47,7 @@ class _ProfilePageState extends State<ProfilePage> {
       body: Consumer<ProfileProvider>(
         builder: (context, provider, child) {
           if (provider.isLoading) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return const Center(child: CircularProgressIndicator());
           }
 
           if (provider.errorMessage != null) {
@@ -57,11 +55,7 @@ class _ProfilePageState extends State<ProfilePage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.error_outline,
-                    size: 64,
-                    color: Colors.red,
-                  ),
+                  Icon(Icons.error_outline, size: 64, color: Colors.red),
                   const SizedBox(height: 16),
                   Text(
                     'Erro ao carregar perfil',
@@ -74,9 +68,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   Text(
                     provider.errorMessage!,
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: themeData().colorScheme.tertiary,
-                    ),
+                    style: TextStyle(color: themeData().colorScheme.tertiary),
                   ),
                   const SizedBox(height: 20),
                   ElevatedButton(
@@ -116,9 +108,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 padding: const EdgeInsets.only(left: 25.0),
                 child: Text(
                   'Meus Detalhes',
-                  style: TextStyle(
-                    color: themeData().colorScheme.tertiary,
-                  ),
+                  style: TextStyle(color: themeData().colorScheme.tertiary),
                 ),
               ),
               MyBioBox(
@@ -127,7 +117,9 @@ class _ProfilePageState extends State<ProfilePage> {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const EditProfilePage()),
+                    MaterialPageRoute(
+                      builder: (context) => const EditProfilePage(),
+                    ),
                   );
                 },
               ),
