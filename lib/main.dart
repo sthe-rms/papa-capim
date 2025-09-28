@@ -1,12 +1,30 @@
 import 'package:flutter/material.dart';
-import 'package:ok/pages/register.dart';
-import 'package:ok/services/auth/login_ou_register.dart';
-import 'package:ok/themes/theme.dart';
-import 'package:ok/pages/home_page.dart';
-import 'package:ok/pages/login.dart';
+import 'package:papa_capim/core/providers/feed_provider.dart';
+import 'package:papa_capim/core/providers/profile_provider.dart';
+import 'package:papa_capim/core/providers/post_provider.dart';
+import 'package:papa_capim/core/services/api_service.dart';
+import 'package:papa_capim/core/services/auth_service.dart';
+import 'package:papa_capim/services/auth/login_ou_register.dart';
+import 'package:provider/provider.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        Provider<ApiService>(create: (_) => ApiService()),
+        Provider<AuthService>(
+          create: (context) => AuthService(context.read<ApiService>()),
+        ),
+        ChangeNotifierProvider<ProfileProvider>(
+          create: (context) => ProfileProvider(context.read<ApiService>()),
+        ),
+        ChangeNotifierProvider<FeedProvider>(
+          create: (context) => FeedProvider(context.read<ApiService>()),
+        ),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -16,8 +34,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: LoginOrRegister(),
-      theme: ThemeData.light(),
+      home: const LoginOrRegister(),
+      theme: ThemeData.dark(),
     );
   }
 }
