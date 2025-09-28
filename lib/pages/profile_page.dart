@@ -9,7 +9,7 @@ class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
   @override
-  State<ProfilePage> createState() => _ProfilePageState();
+  State<ProfilePage> createState() => _ProfilePageState(); //entendendo as branchs
 }
 
 class _ProfilePageState extends State<ProfilePage> {
