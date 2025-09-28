@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import 'package:papa_capim/core/models/user_model.dart';
 import 'package:papa_capim/core/models/post_model.dart';
 import 'package:papa_capim/core/services/secure_storage_service.dart';
+import 'package:papa_capim/core/models/like_model.dart';
+import 'package:papa_capim/core/models/follow_model.dart';
 
 class ApiService {
   static const String _baseUrl = 'https://api.papacapim.just.pro.br';
@@ -30,33 +32,213 @@ class ApiService {
 
   Future<User> getMyProfile() async {
     final headers = await _getAuthHeaders();
+  
+    final userLogin = await _storageService.readUserLogin();
+    
+    if (userLogin == null) {
+      throw Exception('Usuário não encontrado no storage. Faça login novamente.');
+    }
+    
+    print('🔍 BUSCANDO PERFIL DO USUÁRIO: $userLogin');
+    print('🌐 URL: $_baseUrl/users/$userLogin');
     
     final response = await http.get(
-      Uri.parse('$_baseUrl/me'),
+      Uri.parse('$_baseUrl/users/$userLogin'),
       headers: headers,
     );
 
+    print(' RESPOSTA DO PERFIL: ${response.statusCode}');
+    print('CORPO: ${response.body}');
+
     if (response.statusCode == 200) {
+      print('PERFIL CARREGADO COM SUCESSO');
       return User.fromJson(jsonDecode(response.body));
     } else if (response.statusCode == 401) {
-      await _storageService.deleteToken(); // Limpa token inválido
+      await _storageService.deleteToken();
       throw Exception('Sessão expirada. Faça o login novamente.');
+    } else if (response.statusCode == 404) {
+      throw Exception('Usuário "$userLogin" não encontrado na API. Verifique se o login está correto.');
     } else {
       throw Exception(
         'Falha ao carregar dados do perfil (Cód: ${response.statusCode})',
       );
     }
   }
-  Future<List<User>> getUsers({String? search, int page = 1}) async {
+
+  Future<List<Post>> getPosts({bool feed = false, String? search, int page = 1}) async {
     final headers = await _getAuthHeaders();
     
     final params = {'page': page.toString()};
-    if (search != null && search.isNotEmpty) {
-      params['search'] = search;
-    }
+    if (feed) params['feed'] = '1';
+    if (search != null && search.isNotEmpty) params['search'] = search;
 
     final response = await http.get(
-      Uri.parse('$_baseUrl/users').replace(queryParameters: params),
+      Uri.parse('$_baseUrl/posts').replace(queryParameters: params),
+      headers: headers,
+    );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+      return data.map((postJson) => Post.fromJson(postJson)).toList();
+    } else if (response.statusCode == 401) {
+      await _storageService.deleteToken();
+      throw Exception('Sessão expirada.');
+    } else {
+      throw Exception('Falha ao buscar postagens: ${response.statusCode}');
+    }
+  }
+
+  Future<List<Post>> getUserPosts(String login, {int page = 1}) async {
+    final headers = await _getAuthHeaders();
+    
+    final response = await http.get(
+      Uri.parse('$_baseUrl/users/$login/posts?page=$page'),
+      headers: headers,
+    );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+      return data.map((postJson) => Post.fromJson(postJson)).toList();
+    } else if (response.statusCode == 401) {
+      await _storageService.deleteToken();
+      throw Exception('Sessão expirada.');
+    } else {
+      throw Exception('Falha ao buscar postagens do usuário: ${response.statusCode}');
+    }
+  }
+
+  Future<Post> createPost(String message) async {
+    final headers = await _getAuthHeaders();
+    
+    final response = await http.post(
+      Uri.parse('$_baseUrl/posts'),
+      headers: headers,
+      body: jsonEncode({'post': {'message': message}}),
+    );
+
+    if (response.statusCode == 201) {
+      return Post.fromJson(jsonDecode(response.body));
+    } else if (response.statusCode == 401) {
+      await _storageService.deleteToken();
+      throw Exception('Sessão expirada.');
+    } else {
+      throw Exception('Falha ao criar postagem: ${response.statusCode}');
+    }
+  }
+
+  Future<Post> createReply(int postId, String message) async {
+    final headers = await _getAuthHeaders();
+    
+    final response = await http.post(
+      Uri.parse('$_baseUrl/posts/$postId/replies'),
+      headers: headers,
+      body: jsonEncode({'reply': {'message': message}}),
+    );
+
+    if (response.statusCode == 201) {
+      return Post.fromJson(jsonDecode(response.body));
+    } else if (response.statusCode == 401) {
+      await _storageService.deleteToken();
+      throw Exception('Sessão expirada.');
+    } else {
+      throw Exception('Falha ao responder postagem: ${response.statusCode}');
+    }
+  }
+
+  Future<void> deletePost(int postId) async {
+    final headers = await _getAuthHeaders();
+    
+    final response = await http.delete(
+      Uri.parse('$_baseUrl/posts/$postId'),
+      headers: headers,
+    );
+
+    if (response.statusCode == 204) {
+      return;
+    } else if (response.statusCode == 401) {
+      await _storageService.deleteToken();
+      throw Exception('Sessão expirada.');
+    } else {
+      throw Exception('Falha ao excluir postagem: ${response.statusCode}');
+    }
+  }
+  Future<Like> likePost(int postId) async {
+    final headers = await _getAuthHeaders();
+    
+    final response = await http.post(
+      Uri.parse('$_baseUrl/posts/$postId/likes'),
+      headers: headers,
+    );
+
+    if (response.statusCode == 201) {
+      return Like.fromJson(jsonDecode(response.body));
+    } else if (response.statusCode == 401) {
+      await _storageService.deleteToken();
+      throw Exception('Sessão expirada.');
+    } else {
+      throw Exception('Falha ao curtir postagem: ${response.statusCode}');
+    }
+  }
+
+  Future<void> unlikePost(int postId, int likeId) async {
+    final headers = await _getAuthHeaders();
+    
+    final response = await http.delete(
+      Uri.parse('$_baseUrl/posts/$postId/likes/$likeId'),
+      headers: headers,
+    );
+
+    if (response.statusCode == 204) {
+      return;
+    } else if (response.statusCode == 401) {
+      await _storageService.deleteToken();
+      throw Exception('Sessão expirada.');
+    } else {
+      throw Exception('Falha ao descurtir postagem: ${response.statusCode}');
+    }
+  }
+
+  Future<Follow> followUser(String login) async {
+    final headers = await _getAuthHeaders();
+    
+    final response = await http.post(
+      Uri.parse('$_baseUrl/users/$login/followers'),
+      headers: headers,
+    );
+
+    if (response.statusCode == 201) {
+      return Follow.fromJson(jsonDecode(response.body));
+    } else if (response.statusCode == 401) {
+      await _storageService.deleteToken();
+      throw Exception('Sessão expirada.');
+    } else {
+      throw Exception('Falha ao seguir usuário: ${response.statusCode}');
+    }
+  }
+
+  Future<void> unfollowUser(String login, int followId) async {
+    final headers = await _getAuthHeaders();
+    
+    final response = await http.delete(
+      Uri.parse('$_baseUrl/users/$login/followers/$followId'),
+      headers: headers,
+    );
+
+    if (response.statusCode == 204) {
+      return;
+    } else if (response.statusCode == 401) {
+      await _storageService.deleteToken();
+      throw Exception('Sessão expirada.');
+    } else {
+      throw Exception('Falha ao deixar de seguir: ${response.statusCode}');
+    }
+  }
+
+  Future<List<User>> getUserFollowers(String login) async {
+    final headers = await _getAuthHeaders();
+    
+    final response = await http.get(
+      Uri.parse('$_baseUrl/users/$login/followers'),
       headers: headers,
     );
 
@@ -67,71 +249,26 @@ class ApiService {
       await _storageService.deleteToken();
       throw Exception('Sessão expirada.');
     } else {
-      throw Exception('Falha ao buscar usuários: ${response.statusCode}');
+      throw Exception('Falha ao buscar seguidores: ${response.statusCode}');
     }
   }
 
-  Future<User> getUserByLogin(String login) async {
-    final headers = await _getAuthHeaders();
+  Future<void> debugApiStatus() async {
+    final token = await _storageService.readToken();
+    final userLogin = await _storageService.readUserLogin();
     
-    final response = await http.get(
-      Uri.parse('$_baseUrl/users/$login'),
-      headers: headers,
-    );
-
-    if (response.statusCode == 200) {
-      return User.fromJson(jsonDecode(response.body));
-    } else if (response.statusCode == 401) {
-      await _storageService.deleteToken();
-      throw Exception('Sessão expirada.');
-    } else if (response.statusCode == 404) {
-      throw Exception('Usuário não encontrado.');
-    } else {
-      throw Exception('Falha ao buscar usuário: ${response.statusCode}');
-    }
-  }
-
-  Future<User> updateUser(int userId, {String? name, String? login, String? password, String? passwordConfirmation}) async {
-    final headers = await _getAuthHeaders();
+    print('🔍 DEBUG API SERVICE:');
+    print('   Token presente: ${token != null}');
+    print('   UserLogin: $userLogin');
+    print('   Base URL: $_baseUrl');
     
-    final Map<String, dynamic> userData = {};
-    if (name != null) userData['name'] = name;
-    if (login != null) userData['login'] = login;
-    if (password != null) userData['password'] = password;
-    if (passwordConfirmation != null) userData['password_confirmation'] = passwordConfirmation;
-
-    final response = await http.patch(
-      Uri.parse('$_baseUrl/users/$userId'),
-      headers: headers,
-      body: jsonEncode({'user': userData}),
-    );
-
-    if (response.statusCode == 201) {
-      return User.fromJson(jsonDecode(response.body));
-    } else if (response.statusCode == 401) {
-      await _storageService.deleteToken();
-      throw Exception('Sessão expirada.');
-    } else {
-      throw Exception('Falha ao atualizar usuário: ${response.statusCode}');
+    if (token != null && userLogin != null) {
+      try {
+        final headers = await _getAuthHeaders();
+        print('   Headers: $headers');
+      } catch (e) {
+        print('   Erro ao obter headers: $e');
+      }
     }
   }
-
-  Future<void> deleteUser(int userId) async {
-    final headers = await _getAuthHeaders();
-    
-    final response = await http.delete(
-      Uri.parse('$_baseUrl/users/$userId'),
-      headers: headers,
-    );
-
-    if (response.statusCode == 204) {
-      await _storageService.deleteToken(); // Limpa token após excluir conta
-    } else if (response.statusCode == 401) {
-      await _storageService.deleteToken();
-      throw Exception('Sessão expirada.');
-    } else {
-      throw Exception('Falha ao excluir usuário: ${response.statusCode}');
-    }
-  }
-
 }
