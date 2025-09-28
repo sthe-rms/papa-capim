@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:papa_capim/core/providers/feed_provider.dart';
 import 'package:papa_capim/core/providers/profile_provider.dart';
+import 'package:papa_capim/core/providers/post_provider.dart';
 import 'package:papa_capim/core/services/api_service.dart';
 import 'package:papa_capim/core/services/auth_service.dart';
 import 'package:papa_capim/services/auth/login_ou_register.dart';
@@ -15,6 +17,9 @@ void main() {
         ),
         ChangeNotifierProvider<ProfileProvider>(
           create: (context) => ProfileProvider(context.read<ApiService>()),
+        ),
+        ChangeNotifierProvider<FeedProvider>(
+          create: (context) => FeedProvider(context.read<ApiService>()),
         ),
       ],
       child: const MyApp(),

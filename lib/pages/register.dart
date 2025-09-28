@@ -41,6 +41,7 @@ class _RegisterPageState extends State<RegisterPage> {
         nomeController.text,
         emailController.text,
         senhaController.text,
+        confirmarSenhaController.text, 
       );
 
       if (mounted && success) {

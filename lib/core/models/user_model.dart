@@ -1,12 +1,19 @@
 class User {
-  final int id;
+  final int? id;   
+  final String login;
   final String name;
-  final String login; 
 
-  User({required this.id, required this.name, required this.login});
+  User({
+    this.id,
+    required this.login,
+    required this.name,
+  });
 
-  // Factory constructor para criar um User a partir de um JSON
   factory User.fromJson(Map<String, dynamic> json) {
-    return User(id: json['id'], name: json['name'], login: json['login']);
+    return User(
+      id: json['id'],  
+      login: json['login'] ?? '',
+      name: json['name'] ?? '',
+    );
   }
 }

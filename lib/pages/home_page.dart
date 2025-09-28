@@ -4,7 +4,9 @@ import 'package:papa_capim/components/post_card.dart';
 import 'package:papa_capim/components/create_post_modal.dart';
 import 'package:papa_capim/themes/theme.dart';
 import 'package:papa_capim/components/user_card.dart';
-import 'package:papa_capim/pages/profile_page.dart';
+import 'package:provider/provider.dart';
+import '../core/models/user_model.dart';
+import '../core/services/api_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -112,6 +114,7 @@ class _HomePageState extends State<HomePage> {
 
   void _replyToPost(int postId) {
     print('Responder ao post $postId');
+    // TODO: Implementar funcionalidade de resposta
   }
 
   void _searchUsers(String query) {
@@ -146,13 +149,23 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  // CORREÇÃO: Remover _viewUserProfile ou substituir por navegação para perfil geral
   void _viewUserProfile(Map<String, dynamic> user) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => UserProfilePage(user: user),
+    // Por enquanto, vamos apenas mostrar um snackbar
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Perfil de ${user['name']}'),
+        backgroundColor: themeData().colorScheme.primary,
       ),
     );
+    
+    // TODO: Implementar navegação para perfil de outros usuários
+    // Navigator.push(
+    //   context,
+    //   MaterialPageRoute(
+    //     builder: (context) => UserProfilePage(user: user),
+    //   ),
+    // );
   }
 
   void _clearSearch() {
@@ -161,6 +174,38 @@ class _HomePageState extends State<HomePage> {
       _isSearching = false;
       _searchResults.clear();
     });
+  }
+
+  // ADICIONAR: Buscar usuários da API
+  Future<void> _searchUsersFromApi(String query) async {
+    if (query.isEmpty) {
+      setState(() {
+        _searchResults.clear();
+      });
+      return;
+    }
+
+    try {
+      final apiService = Provider.of<ApiService>(context, listen: false);
+      final users = await apiService.searchUsers(query);
+      
+      setState(() {
+        _searchResults = users.map((user) => {
+          'id': user.id,
+          'login': user.login,
+          'name': user.name,
+          'isFollowing': false, // TODO: Verificar se está seguindo
+          'followersCount': 0, // TODO: Buscar contagem de seguidores
+        }).toList();
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro ao buscar usuários: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
@@ -211,7 +256,10 @@ class _HomePageState extends State<HomePage> {
     return TextField(
       controller: _searchController,
       autofocus: true,
-      onChanged: _searchUsers,
+      onChanged: (query) {
+        _searchUsers(query); // Busca local
+        // _searchUsersFromApi(query); // Descomente para buscar da API
+      },
       decoration: InputDecoration(
         hintText: 'Buscar usuários...',
         hintStyle: TextStyle(color: themeData().colorScheme.tertiary),
@@ -260,6 +308,7 @@ class _HomePageState extends State<HomePage> {
   Widget _buildFeed() {
     return Column(
       children: [
+        // Cabeçalho para criar post
         Container(
           padding: const EdgeInsets.all(16),
           color: themeData().colorScheme.surface,
@@ -297,6 +346,7 @@ class _HomePageState extends State<HomePage> {
         ),
         Divider(height: 1, color: themeData().colorScheme.tertiary),
       
+        // Lista de posts
         Expanded(
           child: RefreshIndicator(
             onRefresh: () async {
