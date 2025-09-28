@@ -33,7 +33,7 @@ class AuthService {
       await _storageService.writeUserLogin(userLogin);
       
       print('TOKEN SALVO: $token');
-      print('✅ USERLOGIN SALVO: $userLogin');
+      print('USERLOGIN SALVO: $userLogin');
       return true;
     } else if (response.statusCode == 401) {
       throw Exception('Login ou senha incorretos');
@@ -69,7 +69,6 @@ class AuthService {
   Future<void> logout() async {
     final token = await _storageService.readToken();
     if (token != null) {
-      // A API não especifica como encerrar sessão, então apenas limpamos localmente
       await _storageService.deleteToken();
     }
   }

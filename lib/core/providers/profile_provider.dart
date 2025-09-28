@@ -20,14 +20,13 @@ class ProfileProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      // Debug: verificar storage primeiro
       await _apiService.debugStorage();
       
       _user = await _apiService.getMyProfile();
-      print('✅ PERFIL CARREGADO: ${_user?.name}');
+      print('PERFIL CARREGADO: ${_user?.name}');
     } catch (e) {
       _errorMessage = e.toString();
-      print('❌ ERRO NO PERFIL: $e');
+      print('ERRO NO PERFIL: $e');
     } finally {
       _isLoading = false;
       notifyListeners();

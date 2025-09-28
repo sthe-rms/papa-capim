@@ -114,7 +114,6 @@ class _HomePageState extends State<HomePage> {
 
   void _replyToPost(int postId) {
     print('Responder ao post $postId');
-    // TODO: Implementar funcionalidade de resposta
   }
 
   void _searchUsers(String query) {
@@ -145,13 +144,11 @@ class _HomePageState extends State<HomePage> {
           break;
         }
       }
-      _searchUsers(_searchController.text); // Atualizar resultados
+      _searchUsers(_searchController.text); 
     });
   }
 
-  // CORREÇÃO: Remover _viewUserProfile ou substituir por navegação para perfil geral
   void _viewUserProfile(Map<String, dynamic> user) {
-    // Por enquanto, vamos apenas mostrar um snackbar
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Perfil de ${user['name']}'),
@@ -159,13 +156,6 @@ class _HomePageState extends State<HomePage> {
       ),
     );
     
-    // TODO: Implementar navegação para perfil de outros usuários
-    // Navigator.push(
-    //   context,
-    //   MaterialPageRoute(
-    //     builder: (context) => UserProfilePage(user: user),
-    //   ),
-    // );
   }
 
   void _clearSearch() {
@@ -176,7 +166,6 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  // ADICIONAR: Buscar usuários da API
   Future<void> _searchUsersFromApi(String query) async {
     if (query.isEmpty) {
       setState(() {
@@ -194,8 +183,8 @@ class _HomePageState extends State<HomePage> {
           'id': user.id,
           'login': user.login,
           'name': user.name,
-          'isFollowing': false, // TODO: Verificar se está seguindo
-          'followersCount': 0, // TODO: Buscar contagem de seguidores
+          'isFollowing': false, 
+          'followersCount': 0,
         }).toList();
       });
     } catch (e) {
@@ -257,8 +246,7 @@ class _HomePageState extends State<HomePage> {
       controller: _searchController,
       autofocus: true,
       onChanged: (query) {
-        _searchUsers(query); // Busca local
-        // _searchUsersFromApi(query); // Descomente para buscar da API
+        _searchUsers(query);
       },
       decoration: InputDecoration(
         hintText: 'Buscar usuários...',
@@ -308,7 +296,6 @@ class _HomePageState extends State<HomePage> {
   Widget _buildFeed() {
     return Column(
       children: [
-        // Cabeçalho para criar post
         Container(
           padding: const EdgeInsets.all(16),
           color: themeData().colorScheme.surface,
@@ -346,7 +333,6 @@ class _HomePageState extends State<HomePage> {
         ),
         Divider(height: 1, color: themeData().colorScheme.tertiary),
       
-        // Lista de posts
         Expanded(
           child: RefreshIndicator(
             onRefresh: () async {

@@ -37,19 +37,18 @@ Future<User> getMyProfile() async {
     throw Exception('UserLogin não encontrado no storage');
   }
 
-  // Codificar o userLogin para URL
   final encodedLogin = Uri.encodeComponent(userLogin);
-  print('🔍 BUSCANDO PERFIL DO USER: $userLogin');
-  print('🔐 LOGIN CODIFICADO: $encodedLogin');
-  print('📡 URL: $_baseUrl/users/$encodedLogin');
+  print('BUSCANDO PERFIL DO USER: $userLogin');
+  print('LOGIN CODIFICADO: $encodedLogin');
+  print(' URL: $_baseUrl/users/$encodedLogin');
   
   final response = await http.get(
     Uri.parse('$_baseUrl/users/$encodedLogin'),
     headers: headers,
   );
 
-  print('📥 RESPOSTA PERFIL: ${response.statusCode}');
-  print('📦 CORPO: ${response.body}');
+  print('RESPOSTA PERFIL: ${response.statusCode}');
+  print('CORPO: ${response.body}');
 
   if (response.statusCode == 200) {
     return User.fromJson(jsonDecode(response.body));
@@ -64,7 +63,7 @@ Future<void> debugStorage() async {
   final token = await _storageService.readToken();
   final userLogin = await _storageService.readUserLogin();
   
-  print('🔍 DEBUG STORAGE:');
+  print(' DEBUG STORAGE:');
   print('   Token: $token');
   print('   UserLogin: $userLogin');
   print('   Token is null: ${token == null}');
