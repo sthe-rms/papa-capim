@@ -23,7 +23,21 @@ class SecureStorageService {
   }
 
   Future<void> deleteToken() async {
-    await _storage.delete(key: _authTokenKey);
-    await _storage.delete(key: _userLoginKey);
+    try {
+      await _storage.delete(key: _authTokenKey);
+      await _storage.delete(key: _userLoginKey);
+      print('TOKEN E USERLOGIN REMOVIDOS DO STORAGE');
+    } catch (e) {
+      print('Erro ao remover token: $e');
+    }
+  }
+
+  Future<void> clearAll() async {
+    try {
+      await _storage.deleteAll();
+      print('STORAGE COMPLETAMENTE LIMPO');
+    } catch (e) {
+      print('Erro ao limpar storage: $e');
+    }
   }
 }
