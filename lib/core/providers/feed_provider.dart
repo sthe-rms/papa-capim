@@ -35,11 +35,63 @@ class FeedProvider with ChangeNotifier {
       _posts.insert(0, newPost);
       notifyListeners();
     } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
       throw e;
     }
   }
 
   Future<void> refreshFeed() async {
     await fetchFeed();
+  }
+
+  // Lógica de like/unlike refatorada para maior confiabilidade
+  Future<void> toggleLike(int postId) async {
+    final postIndex = _posts.indexWhere((p) => p.id == postId);
+    if (postIndex == -1) return;
+
+    final post = _posts[postIndex];
+    final isLiked = post.isLiked ?? false;
+
+    // Removemos a atualização otimista daqui para garantir consistência
+
+    try {
+      if (isLiked) {
+        // --- Processo para DESCURTIR ---
+        final likeId = post.likeId;
+        if (likeId != null) {
+          await _apiService.unlikePost(postId, likeId);
+          // Atualiza o post local APÓS o sucesso da API
+          _posts[postIndex] = Post(
+            id: post.id,
+            userLogin: post.userLogin,
+            message: post.message,
+            createdAt: post.createdAt,
+            updatedAt: post.updatedAt,
+            likesCount: (post.likesCount ?? 1) - 1,
+            isLiked: false,
+            likeId: null, // Remove o ID do like
+          );
+        }
+      } else {
+        // --- Processo para CURTIR ---
+        final newLike = await _apiService.likePost(postId);
+        // Atualiza o post local APÓS o sucesso da API
+        _posts[postIndex] = Post(
+          id: post.id,
+          userLogin: post.userLogin,
+          message: post.message,
+          createdAt: post.createdAt,
+          updatedAt: post.updatedAt,
+          likesCount: (post.likesCount ?? 0) + 1,
+          isLiked: true,
+          likeId: newLike.id, // Armazena o novo ID do like!
+        );
+      }
+      notifyListeners(); // Notifica a UI sobre a mudança
+    } catch (e) {
+      _errorMessage = "Erro ao processar a curtida: ${e.toString()}";
+      notifyListeners();
+    }
   }
 }
