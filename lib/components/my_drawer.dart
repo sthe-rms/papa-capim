@@ -14,11 +14,10 @@ class MyDrawer extends StatelessWidget {
     final authService = Provider.of<AuthService>(context, listen: false);
     authService.logout();
 
-    // Navega para a tela de login/registro e remove todas as outras telas da pilha
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (context) => const LoginOrRegister()),
-      (route) => false, // Essa condição remove todas as rotas anteriores
+      (route) => false, 
     );
   }
 

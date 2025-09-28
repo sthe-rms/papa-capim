@@ -1,9 +1,10 @@
-// pages/home_page.dart
 import 'package:flutter/material.dart';
 import 'package:papa_capim/components/my_drawer.dart';
 import 'package:papa_capim/components/post_card.dart';
 import 'package:papa_capim/components/create_post_modal.dart';
 import 'package:papa_capim/themes/theme.dart';
+import 'package:papa_capim/components/user_card.dart';
+import 'package:papa_capim/pages/profile_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -13,22 +14,23 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final TextEditingController _searchController = TextEditingController();
   final List<Map<String, dynamic>> _posts = [
     {
       'id': 1,
-      'userLogin': 'Neymarjr',
-      'userName': 'JNeymar Jr',
-      'message': 'Bom dia, galera!',
+      'userLogin': 'joao123',
+      'userName': 'João Silva',
+      'message': 'Acabei de entrar no Papacapim! Que plataforma incrível! 🚀',
       'createdAt': '2024-01-15T10:30:00Z',
-      'likesCount': 999,
+      'likesCount': 5,
       'isLiked': false,
-      'repliesCount': 296,
+      'repliesCount': 2,
     },
     {
       'id': 2,
       'userLogin': 'maria89',
       'userName': 'Maria Santos',
-      'message': 'Amor e paz para todos! ✌️',
+      'message': 'Alguém tem dicas para começar com Flutter? Estou adorando!',
       'createdAt': '2024-01-15T09:15:00Z',
       'likesCount': 12,
       'isLiked': true,
@@ -36,19 +38,45 @@ class _HomePageState extends State<HomePage> {
     },
     {
       'id': 3,
-      'userLogin': 'papacapim',
-      'userName': 'Papa Capim',
-      'message': 'Eu sou a melhor plataforma do Brasil!',
+      'userLogin': 'pedro_dev',
+      'userName': 'Pedro Oliveira',
+      'message': 'Finalmente terminei meu projeto! 🎉 #flutter #dart',
       'createdAt': '2024-01-14T16:45:00Z',
-      'likesCount': 668,
+      'likesCount': 8,
       'isLiked': false,
-      'repliesCount': 62,
+      'repliesCount': 3,
     },
   ];
 
+  final List<Map<String, dynamic>> _users = [
+    {
+      'id': 1,
+      'login': 'joao123',
+      'name': 'João Silva',
+      'isFollowing': false,
+      'followersCount': 150,
+    },
+    {
+      'id': 2,
+      'login': 'maria89',
+      'name': 'Maria Santos',
+      'isFollowing': true,
+      'followersCount': 89,
+    },
+    {
+      'id': 3,
+      'login': 'pedro_dev',
+      'name': 'Pedro Oliveira',
+      'isFollowing': false,
+      'followersCount': 234,
+    },
+  ];
+
+  List<Map<String, dynamic>> _searchResults = [];
+  bool _isSearching = false;
+
   void _refreshFeed() {
     setState(() {
-      // Simular atualização do feed
       _posts.shuffle();
     });
     ScaffoldMessenger.of(context).showSnackBar(
@@ -86,91 +114,209 @@ class _HomePageState extends State<HomePage> {
     print('Responder ao post $postId');
   }
 
+  void _searchUsers(String query) {
+    setState(() {
+      _isSearching = query.isNotEmpty;
+      
+      if (query.isEmpty) {
+        _searchResults.clear();
+      } else {
+        _searchResults = _users.where((user) {
+          final name = user['name'].toString().toLowerCase();
+          final login = user['login'].toString().toLowerCase();
+          final searchTerm = query.toLowerCase();
+          return name.contains(searchTerm) || login.contains(searchTerm);
+        }).toList();
+      }
+    });
+  }
+
+  void _toggleFollow(int userId) {
+    setState(() {
+      for (var user in _users) {
+        if (user['id'] == userId) {
+          user['isFollowing'] = !user['isFollowing'];
+          user['followersCount'] = user['isFollowing'] 
+              ? user['followersCount'] + 1 
+              : user['followersCount'] - 1;
+          break;
+        }
+      }
+      _searchUsers(_searchController.text); // Atualizar resultados
+    });
+  }
+
+  void _viewUserProfile(Map<String, dynamic> user) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => UserProfilePage(user: user),
+      ),
+    );
+  }
+
+  void _clearSearch() {
+    setState(() {
+      _searchController.clear();
+      _isSearching = false;
+      _searchResults.clear();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: themeData().colorScheme.surface,
       drawer: const MyDrawer(),
       appBar: AppBar(
-        title: const Text("P A P A C A P I M"),
+        title: _isSearching 
+            ? _buildSearchField()
+            : const Text("P A P A C A P I M"),
         foregroundColor: themeData().colorScheme.primary,
         backgroundColor: themeData().colorScheme.surface,
         elevation: 0,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.refresh, color: themeData().colorScheme.primary),
-            onPressed: _refreshFeed,
-            tooltip: 'Atualizar feed',
-          ),
-        ],
+        actions: _isSearching 
+            ? [
+                IconButton(
+                  icon: Icon(Icons.close, color: themeData().colorScheme.primary),
+                  onPressed: _clearSearch,
+                ),
+              ]
+            : [
+                IconButton(
+                  icon: Icon(Icons.search, color: themeData().colorScheme.primary),
+                  onPressed: () {
+                    setState(() {
+                      _isSearching = true;
+                    });
+                  },
+                ),
+                IconButton(
+                  icon: Icon(Icons.refresh, color: themeData().colorScheme.primary),
+                  onPressed: _refreshFeed,
+                  tooltip: 'Atualizar feed',
+                ),
+              ],
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: _isSearching ? null : FloatingActionButton(
         onPressed: _showCreatePostModal,
         backgroundColor: themeData().colorScheme.primary,
         child: Icon(Icons.add, color: themeData().colorScheme.surface),
       ),
-      body: Column(
-        children: [
-          // Header do Feed
-          Container(
-            padding: const EdgeInsets.all(16),
-            color: themeData().colorScheme.surface,
-            child: Row(
+      body: _isSearching ? _buildSearchResults() : _buildFeed(),
+    );
+  }
+
+  Widget _buildSearchField() {
+    return TextField(
+      controller: _searchController,
+      autofocus: true,
+      onChanged: _searchUsers,
+      decoration: InputDecoration(
+        hintText: 'Buscar usuários...',
+        hintStyle: TextStyle(color: themeData().colorScheme.tertiary),
+        border: InputBorder.none,
+      ),
+      style: TextStyle(color: themeData().colorScheme.primary),
+    );
+  }
+
+  Widget _buildSearchResults() {
+    return _searchResults.isEmpty
+        ? Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                CircleAvatar(
-                  radius: 20,
-                  backgroundColor: themeData().colorScheme.primary,
-                  child: Icon(Icons.person, color: themeData().colorScheme.surface),
+                Icon(
+                  Icons.search_off,
+                  size: 64,
+                  color: themeData().colorScheme.tertiary,
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: _showCreatePostModal,
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: themeData().colorScheme.secondary,
-                        borderRadius: BorderRadius.circular(25),
-                        border: Border.all(
-                          color: themeData().colorScheme.tertiary,
-                        ),
-                      ),
-                      child: Text(
-                        'O que está acontecendo?',
-                        style: TextStyle(
-                          color: themeData().colorScheme.tertiary,
-                        ),
-                      ),
-                    ),
+                const SizedBox(height: 16),
+                Text(
+                  _searchController.text.isEmpty
+                      ? 'Digite para buscar usuários'
+                      : 'Nenhum usuário encontrado',
+                  style: TextStyle(
+                    color: themeData().colorScheme.tertiary,
                   ),
                 ),
               ],
             ),
-          ),
-          Divider(height: 1, color: themeData().colorScheme.tertiary),
-          
-          // Lista de Posts
-          Expanded(
-            child: RefreshIndicator(
-              onRefresh: () async {
-                _refreshFeed();
-              },
-              color: themeData().colorScheme.primary,
-              child: ListView.builder(
-                itemCount: _posts.length,
-                itemBuilder: (context, index) {
-                  final post = _posts[index];
-                  return PostCard(
-                    post: post,
-                    onLike: () => _likePost(post['id']),
-                    onReply: () => _replyToPost(post['id']),
-                  );
-                },
+          )
+        : ListView.builder(
+            itemCount: _searchResults.length,
+            itemBuilder: (context, index) {
+              final user = _searchResults[index];
+              return UserCard(
+                user: user,
+                onFollow: () => _toggleFollow(user['id']),
+                onTap: () => _viewUserProfile(user),
+              );
+            },
+          );
+  }
+
+  Widget _buildFeed() {
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(16),
+          color: themeData().colorScheme.surface,
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 20,
+                backgroundColor: themeData().colorScheme.primary,
+                child: Icon(Icons.person, color: themeData().colorScheme.surface),
               ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: GestureDetector(
+                  onTap: _showCreatePostModal,
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: themeData().colorScheme.secondary,
+                      borderRadius: BorderRadius.circular(25),
+                      border: Border.all(
+                        color: themeData().colorScheme.tertiary,
+                      ),
+                    ),
+                    child: Text(
+                      'O que está acontecendo?',
+                      style: TextStyle(
+                        color: themeData().colorScheme.tertiary,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Divider(height: 1, color: themeData().colorScheme.tertiary),
+      
+        Expanded(
+          child: RefreshIndicator(
+            onRefresh: () async {
+              _refreshFeed();
+            },
+            color: themeData().colorScheme.primary,
+            child: ListView.builder(
+              itemCount: _posts.length,
+              itemBuilder: (context, index) {
+                final post = _posts[index];
+                return PostCard(
+                  post: post,
+                  onLike: () => _likePost(post['id']),
+                  onReply: () => _replyToPost(post['id']),
+                );
+              },
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
