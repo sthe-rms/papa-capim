@@ -3,10 +3,13 @@ import 'package:papa_capim/components/my_drawer.dart';
 import 'package:papa_capim/components/post_card.dart';
 import 'package:papa_capim/components/create_post_modal.dart';
 import 'package:papa_capim/core/providers/feed_provider.dart';
+import 'package:papa_capim/core/providers/feed_provider.dart';
 import 'package:papa_capim/themes/theme.dart';
 import 'package:papa_capim/components/user_card.dart';
 import 'package:provider/provider.dart';
 import '../core/services/api_service.dart';
+import '../core/services/auth_service.dart';
+import '../components/reply_post_modal.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -32,6 +35,7 @@ class _HomePageState extends State<HomePage> {
 
   void _refreshFeed() {
     Provider.of<FeedProvider>(context, listen: false).refreshFeed();
+    Provider.of<FeedProvider>(context, listen: false).refreshFeed();
   }
 
   void _showCreatePostModal() {
@@ -48,7 +52,12 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _replyToPost(int postId) {
-    print('Responder ao post $postId');
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: themeData().colorScheme.surface,
+      builder: (context) => ReplyPostModal(postId: postId),
+    );
   }
 
   void _searchUsers(String query) async {
@@ -120,11 +129,13 @@ class _HomePageState extends State<HomePage> {
       drawer: const MyDrawer(),
       appBar: AppBar(
         title: _isSearching
+        title: _isSearching
             ? _buildSearchField()
             : const Text("P A P A C A P I M"),
         foregroundColor: themeData().colorScheme.primary,
         backgroundColor: themeData().colorScheme.surface,
         elevation: 0,
+        actions: _isSearching
         actions: _isSearching
             ? [
                 IconButton(
@@ -164,6 +175,13 @@ class _HomePageState extends State<HomePage> {
               backgroundColor: themeData().colorScheme.primary,
               child: Icon(Icons.add, color: themeData().colorScheme.surface),
             ),
+      floatingActionButton: _isSearching
+          ? null
+          : FloatingActionButton(
+              onPressed: _showCreatePostModal,
+              backgroundColor: themeData().colorScheme.primary,
+              child: Icon(Icons.add, color: themeData().colorScheme.surface),
+            ),
       body: _isSearching ? _buildSearchResults() : _buildFeed(),
     );
   }
@@ -172,6 +190,7 @@ class _HomePageState extends State<HomePage> {
     return TextField(
       controller: _searchController,
       autofocus: true,
+      onChanged: _searchUsers,
       onChanged: _searchUsers,
       decoration: InputDecoration(
         hintText: 'Buscar usuários...',
@@ -245,6 +264,9 @@ class _HomePageState extends State<HomePage> {
           ),
         );
       },
+        );
+      },
     );
   }
 }
+

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:papa_capim/core/providers/feed_provider.dart';
+import 'package:papa_capim/core/providers/feed_provider.dart';
 import 'package:papa_capim/themes/theme.dart';
+import 'package:provider/provider.dart';
 import 'package:provider/provider.dart';
 
 class CreatePostModal extends StatefulWidget {
@@ -98,6 +100,9 @@ class _CreatePostModalState extends State<CreatePostModal> {
                 hintStyle: TextStyle(color: themeData().colorScheme.tertiary),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: themeData().colorScheme.tertiary,
+                  ),
                   borderSide: BorderSide(
                     color: themeData().colorScheme.tertiary,
                   ),

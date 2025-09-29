@@ -1,19 +1,28 @@
+// lib/components/post_card.dart
+
 import 'package:flutter/material.dart';
+import 'package:papa_capim/core/models/post_model.dart';
 import 'package:papa_capim/core/models/post_model.dart';
 import 'package:papa_capim/themes/theme.dart';
 
 class PostCard extends StatelessWidget {
   final Post post;
+  final Post post;
   final VoidCallback onLike;
   final VoidCallback onReply;
+  final VoidCallback onDelete;
+  final bool isOwnPost;
 
   const PostCard({
     super.key,
     required this.post,
     required this.onLike,
     required this.onReply,
+    required this.onDelete,
+    required this.isOwnPost,
   });
 
+  String _formatTimeAgo(DateTime date) {
   String _formatTimeAgo(DateTime date) {
     final now = DateTime.now();
     final difference = now.difference(date);
@@ -66,6 +75,7 @@ class PostCard extends StatelessWidget {
                     ),
                     Text(
                       '@${post.userLogin}',
+                      '@${post.userLogin}',
                       style: TextStyle(
                         color: themeData().colorScheme.tertiary,
                         fontSize: 12,
@@ -76,16 +86,28 @@ class PostCard extends StatelessWidget {
               ),
               Text(
                 _formatTimeAgo(post.createdAt),
+                _formatTimeAgo(post.createdAt),
                 style: TextStyle(
                   color: themeData().colorScheme.tertiary,
                   fontSize: 12,
                 ),
               ),
+              if (isOwnPost)
+                IconButton(
+                  icon: Icon(
+                    Icons.delete_outline,
+                    color: Colors.red.withOpacity(0.7),
+                    size: 20,
+                  ),
+                  onPressed: onDelete,
+                  tooltip: 'Excluir Postagem',
+                ),
             ],
           ),
           const SizedBox(height: 12),
 
           Text(
+            post.message,
             post.message,
             style: TextStyle(
               color: themeData().colorScheme.primary,
@@ -139,3 +161,4 @@ class PostCard extends StatelessWidget {
     );
   }
 }
+
