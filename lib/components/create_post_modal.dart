@@ -12,25 +12,30 @@ class CreatePostModal extends StatefulWidget {
 
 class _CreatePostModalState extends State<CreatePostModal> {
   final TextEditingController _messageController = TextEditingController();
-  bool _isLoading = false;
+  bool _isPosting = false;
 
   void _createPost() async {
-    if (_messageController.text.trim().isEmpty) {
+    if (_messageController.text.trim().isEmpty || _isPosting) {
       return;
     }
 
     setState(() {
-      _isLoading = true;
+      _isPosting = true;
     });
 
+    final feedProvider = Provider.of<FeedProvider>(context, listen: false);
+
     try {
-      await Provider.of<FeedProvider>(
-        context,
-        listen: false,
-      ).createPost(_messageController.text.trim());
+      await feedProvider.createPost(_messageController.text);
 
       if (mounted) {
-        Navigator.pop(context, true);
+        Navigator.pop(context); // Fecha o modal
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Postagem criada com sucesso!'),
+            backgroundColor: themeData().colorScheme.primary,
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {
@@ -44,7 +49,7 @@ class _CreatePostModalState extends State<CreatePostModal> {
     } finally {
       if (mounted) {
         setState(() {
-          _isLoading = false;
+          _isPosting = false;
         });
       }
     }
@@ -116,25 +121,32 @@ class _CreatePostModalState extends State<CreatePostModal> {
             const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
-              child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : ElevatedButton(
-                      onPressed: _createPost,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: themeData().colorScheme.primary,
-                        padding: const EdgeInsets.symmetric(vertical: 15),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+              child: ElevatedButton(
+                onPressed: _createPost, // Corrigido
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: themeData().colorScheme.primary,
+                  padding: const EdgeInsets.symmetric(vertical: 15),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: _isPosting
+                    ? const SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
                         ),
-                      ),
-                      child: Text(
+                      )
+                    : Text(
                         'Publicar',
                         style: TextStyle(
                           color: themeData().colorScheme.surface,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                    ),
+              ),
             ),
           ],
         ),

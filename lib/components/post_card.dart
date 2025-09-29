@@ -1,3 +1,5 @@
+// lib/components/post_card.dart
+
 import 'package:flutter/material.dart';
 import 'package:papa_capim/core/models/post_model.dart';
 import 'package:papa_capim/themes/theme.dart';
@@ -6,12 +8,16 @@ class PostCard extends StatelessWidget {
   final Post post;
   final VoidCallback onLike;
   final VoidCallback onReply;
+  final VoidCallback onDelete;
+  final bool isOwnPost;
 
   const PostCard({
     super.key,
     required this.post,
     required this.onLike,
     required this.onReply,
+    required this.onDelete,
+    required this.isOwnPost,
   });
 
   String _formatTimeAgo(DateTime date) {
@@ -43,7 +49,6 @@ class PostCard extends StatelessWidget {
                 radius: 20,
                 backgroundColor: themeData().colorScheme.primary,
                 child: Text(
-                  // Usando a primeira letra do login, pois é o dado que temos
                   post.userLogin.substring(0, 1).toUpperCase(),
                   style: TextStyle(
                     color: themeData().colorScheme.surface,
@@ -56,9 +61,8 @@ class PostCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Exibindo o userLogin, pois não temos o nome completo aqui
                     Text(
-                      post.userLogin,
+                      post.userLogin, // Idealmente, seria o nome do usuário
                       style: TextStyle(
                         color: themeData().colorScheme.primary,
                         fontWeight: FontWeight.bold,
@@ -81,10 +85,19 @@ class PostCard extends StatelessWidget {
                   fontSize: 12,
                 ),
               ),
+              if (isOwnPost)
+                IconButton(
+                  icon: Icon(
+                    Icons.delete_outline,
+                    color: Colors.red.withOpacity(0.7),
+                    size: 20,
+                  ),
+                  onPressed: onDelete,
+                  tooltip: 'Excluir Postagem',
+                ),
             ],
           ),
           const SizedBox(height: 12),
-
           Text(
             post.message,
             style: TextStyle(
@@ -93,30 +106,26 @@ class PostCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-
           Row(
             children: [
               IconButton(
                 onPressed: onLike,
                 icon: Icon(
-                  post.isLiked ?? false
-                      ? Icons.favorite
-                      : Icons.favorite_border,
-                  color: post.isLiked ?? false
+                  post.isLiked ? Icons.favorite : Icons.favorite_border,
+                  color: post.isLiked
                       ? Colors.red
                       : themeData().colorScheme.tertiary,
                   size: 20,
                 ),
               ),
               Text(
-                (post.likesCount ?? 0).toString(),
+                post.likesCount.toString(),
                 style: TextStyle(
                   color: themeData().colorScheme.tertiary,
                   fontSize: 12,
                 ),
               ),
               const SizedBox(width: 20),
-
               IconButton(
                 onPressed: onReply,
                 icon: Icon(
@@ -126,7 +135,7 @@ class PostCard extends StatelessWidget {
                 ),
               ),
               Text(
-                '0', // O número de respostas ainda não está disponível no modelo
+                "0", // Você precisaria de um campo 'replies_count' da API
                 style: TextStyle(
                   color: themeData().colorScheme.tertiary,
                   fontSize: 12,

@@ -5,8 +5,8 @@ class Post {
   final String message;
   final DateTime createdAt;
   final DateTime updatedAt;
-  final int? likesCount;
-  final bool? isLiked;
+  final int likesCount;
+  final bool isLiked;
   final int? likeId;
 
   Post({
@@ -16,8 +16,8 @@ class Post {
     required this.message,
     required this.createdAt,
     required this.updatedAt,
-    this.likesCount,
-    this.isLiked,
+    required this.likesCount,
+    required this.isLiked,
     this.likeId,
   });
 
@@ -29,8 +29,8 @@ class Post {
       message: json['message'],
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
-      likesCount: json['likes_count'],
-      isLiked: json['is_liked'],
+      likesCount: json['likes_count'] ?? 0,
+      isLiked: json['is_liked'] ?? false,
       likeId: json['like_id'],
     );
   }
@@ -44,5 +44,30 @@ class Post {
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
     };
+  }
+
+  Post copyWith({
+    int? id,
+    String? userLogin,
+    int? postId,
+    String? message,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    int? likesCount,
+    bool? isLiked,
+    int? likeId,
+    bool forceLikeIdToNull = false,
+  }) {
+    return Post(
+      id: id ?? this.id,
+      userLogin: userLogin ?? this.userLogin,
+      postId: postId ?? this.postId,
+      message: message ?? this.message,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      likesCount: likesCount ?? this.likesCount,
+      isLiked: isLiked ?? this.isLiked,
+      likeId: forceLikeIdToNull ? null : likeId ?? this.likeId,
+    );
   }
 }

@@ -7,6 +7,8 @@ import 'package:papa_capim/themes/theme.dart';
 import 'package:papa_capim/components/user_card.dart';
 import 'package:provider/provider.dart';
 import '../core/services/api_service.dart';
+import '../core/services/auth_service.dart';
+import '../components/reply_post_modal.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -17,17 +19,44 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final TextEditingController _searchController = TextEditingController();
-
   List<Map<String, dynamic>> _searchResults = [];
   bool _isSearching = false;
+  String? _currentUserLogin;
+
+  // Controller para a paginação
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    // Garante que o feed seja carregado quando a página for iniciada
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<FeedProvider>(context, listen: false).fetchFeed();
+      _loadCurrentUserAndFeed();
     });
+
+    // Adiciona o listener para o scroll
+    _scrollController.addListener(() {
+      // Se o usuário chegou ao final da lista, carrega mais posts
+      if (_scrollController.position.pixels ==
+          _scrollController.position.maxScrollExtent) {
+        Provider.of<FeedProvider>(context, listen: false).loadMorePosts();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    // Limpa o controller para evitar vazamentos de memória
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _loadCurrentUserAndFeed() async {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    _currentUserLogin = await authService.getCurrentUserLogin();
+    if (mounted) {
+      Provider.of<FeedProvider>(context, listen: false).fetchFeed();
+      setState(() {});
+    }
   }
 
   void _refreshFeed() {
@@ -40,15 +69,69 @@ class _HomePageState extends State<HomePage> {
       isScrollControlled: true,
       backgroundColor: themeData().colorScheme.surface,
       builder: (context) => const CreatePostModal(),
-    ); // <--- Correto! Sem .then() recarregando o feed.
-  }
-
-  void _likePost(int postId) {
-    Provider.of<FeedProvider>(context, listen: false).toggleLike(postId);
+    );
   }
 
   void _replyToPost(int postId) {
-    print('Responder ao post $postId');
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: themeData().colorScheme.surface,
+      builder: (context) => ReplyPostModal(postId: postId),
+    );
+  }
+
+  void _deletePost(int postId) async {
+    final bool? shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: themeData().colorScheme.secondary,
+        title: Text(
+          'Excluir Postagem',
+          style: TextStyle(color: themeData().colorScheme.primary),
+        ),
+        content: Text(
+          'Tem certeza que deseja excluir esta postagem? Esta ação não pode ser desfeita.',
+          style: TextStyle(color: themeData().colorScheme.primary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(
+              'Cancelar',
+              style: TextStyle(color: themeData().colorScheme.primary),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Excluir', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldDelete == true) {
+      try {
+        final feedProvider = Provider.of<FeedProvider>(context, listen: false);
+        await feedProvider.deletePost(postId);
+
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Postagem excluída com sucesso'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao excluir postagem: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   void _searchUsers(String query) async {
@@ -93,7 +176,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _toggleFollow(int userId) {
-    // Implemente a lógica de seguir/deixar de seguir aqui
+    // Lógica de seguir/deixar de seguir
   }
 
   void _viewUserProfile(Map<String, dynamic> user) {
@@ -185,11 +268,22 @@ class _HomePageState extends State<HomePage> {
   Widget _buildSearchResults() {
     return _searchResults.isEmpty
         ? Center(
-            child: Text(
-              _searchController.text.isEmpty
-                  ? 'Digite para buscar usuários'
-                  : 'Nenhum usuário encontrado',
-              style: TextStyle(color: themeData().colorScheme.tertiary),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.search_off,
+                  size: 64,
+                  color: themeData().colorScheme.tertiary,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  _searchController.text.isEmpty
+                      ? 'Digite para buscar usuários'
+                      : 'Nenhum usuário encontrado',
+                  style: TextStyle(color: themeData().colorScheme.tertiary),
+                ),
+              ],
             ),
           )
         : ListView.builder(
@@ -217,7 +311,7 @@ class _HomePageState extends State<HomePage> {
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Text(
-                "Ocorreu um erro: ${provider.errorMessage}",
+                "Erro ao carregar o feed: ${provider.errorMessage!}",
                 textAlign: TextAlign.center,
               ),
             ),
@@ -225,21 +319,63 @@ class _HomePageState extends State<HomePage> {
         }
 
         if (provider.posts.isEmpty) {
-          return const Center(
-            child: Text("Nenhum post encontrado. Seja o primeiro a postar!"),
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.feed_outlined,
+                  size: 64,
+                  color: themeData().colorScheme.tertiary,
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Nenhuma postagem no feed.',
+                  style: TextStyle(color: Colors.grey),
+                ),
+              ],
+            ),
           );
         }
 
         return RefreshIndicator(
-          onRefresh: () async => _refreshFeed(),
+          onRefresh: provider.refreshFeed,
+          color: themeData().colorScheme.primary,
           child: ListView.builder(
-            itemCount: provider.posts.length,
+            controller: _scrollController,
+            itemCount: provider.posts.length + (provider.isLoadingMore ? 1 : 0),
             itemBuilder: (context, index) {
+              if (index == provider.posts.length) {
+                return const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: CircularProgressIndicator(),
+                  ),
+                );
+              }
+
               final post = provider.posts[index];
               return PostCard(
                 post: post,
-                onLike: () => _likePost(post.id),
+                onLike: () async {
+                  try {
+                    await provider.toggleLike(post.id);
+                  } catch (e) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            e.toString().replaceAll('Exception: ', ''),
+                          ),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  }
+                },
                 onReply: () => _replyToPost(post.id),
+                onDelete: () => _deletePost(post.id),
+                isOwnPost: post.userLogin == _currentUserLogin,
               );
             },
           ),
