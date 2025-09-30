@@ -8,6 +8,7 @@ class Post {
   final int likesCount;
   final bool isLiked;
   final int? likeId;
+  List<Post> replies;
 
   Post({
     required this.id,
@@ -19,6 +20,7 @@ class Post {
     required this.likesCount,
     required this.isLiked,
     this.likeId,
+    this.replies = const [],
   });
 
   factory Post.fromJson(Map<String, dynamic> json) {
@@ -57,6 +59,7 @@ class Post {
     bool? isLiked,
     int? likeId,
     bool forceLikeIdToNull = false,
+    List<Post>? replies,
   }) {
     return Post(
       id: id ?? this.id,
@@ -68,6 +71,7 @@ class Post {
       likesCount: likesCount ?? this.likesCount,
       isLiked: isLiked ?? this.isLiked,
       likeId: forceLikeIdToNull ? null : likeId ?? this.likeId,
+      replies: replies ?? this.replies,
     );
   }
 }

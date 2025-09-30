@@ -6,6 +6,8 @@ import 'package:papa_capim/core/providers/feed_provider.dart';
 import 'package:papa_capim/themes/theme.dart';
 import 'package:papa_capim/components/user_card.dart';
 import 'package:provider/provider.dart';
+import '../core/models/post_model.dart';
+import '../core/models/user_model.dart';
 import '../core/services/api_service.dart';
 import '../core/services/auth_service.dart';
 import '../components/reply_post_modal.dart';
@@ -19,7 +21,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final TextEditingController _searchController = TextEditingController();
-  List<Map<String, dynamic>> _searchResults = [];
+  List<dynamic> _searchResults = [];
   bool _isSearching = false;
   String? _currentUserLogin;
 
@@ -134,7 +136,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void _searchUsers(String query) async {
+  void _search(String query) async {
     setState(() {
       _isSearching = query.isNotEmpty;
     });
@@ -149,25 +151,16 @@ class _HomePageState extends State<HomePage> {
     try {
       final apiService = Provider.of<ApiService>(context, listen: false);
       final users = await apiService.searchUsers(query);
+      final posts = await apiService.getPosts(search: query);
 
       setState(() {
-        _searchResults = users
-            .map(
-              (user) => {
-                'id': user.id,
-                'login': user.login,
-                'name': user.name,
-                'isFollowing': false,
-                'followersCount': 0,
-              },
-            )
-            .toList();
+        _searchResults = [...users, ...posts];
       });
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erro ao buscar usuários: ${e.toString()}'),
+            content: Text('Erro ao buscar: ${e.toString()}'),
             backgroundColor: Colors.red,
           ),
         );
@@ -179,10 +172,10 @@ class _HomePageState extends State<HomePage> {
     // Lógica de seguir/deixar de seguir
   }
 
-  void _viewUserProfile(Map<String, dynamic> user) {
+  void _viewUserProfile(User user) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Perfil de ${user['name']}'),
+        content: Text('Perfil de ${user.name}'),
         backgroundColor: themeData().colorScheme.primary,
       ),
     );
@@ -255,9 +248,9 @@ class _HomePageState extends State<HomePage> {
     return TextField(
       controller: _searchController,
       autofocus: true,
-      onChanged: _searchUsers,
+      onChanged: _search,
       decoration: InputDecoration(
-        hintText: 'Buscar usuários...',
+        hintText: 'Buscar usuários e posts...',
         hintStyle: TextStyle(color: themeData().colorScheme.tertiary),
         border: InputBorder.none,
       ),
@@ -279,8 +272,8 @@ class _HomePageState extends State<HomePage> {
                 const SizedBox(height: 16),
                 Text(
                   _searchController.text.isEmpty
-                      ? 'Digite para buscar usuários'
-                      : 'Nenhum usuário encontrado',
+                      ? 'Digite para buscar usuários ou posts'
+                      : 'Nenhum resultado encontrado',
                   style: TextStyle(color: themeData().colorScheme.tertiary),
                 ),
               ],
@@ -289,12 +282,41 @@ class _HomePageState extends State<HomePage> {
         : ListView.builder(
             itemCount: _searchResults.length,
             itemBuilder: (context, index) {
-              final user = _searchResults[index];
-              return UserCard(
-                user: user,
-                onFollow: () => _toggleFollow(user['id']),
-                onTap: () => _viewUserProfile(user),
-              );
+              final item = _searchResults[index];
+              if (item is User) {
+                return UserCard(
+                  user: item,
+                  onFollow: () => _toggleFollow(item.id),
+                  onTap: () => _viewUserProfile(item),
+                );
+              } else if (item is Post) {
+                return PostCard(
+                  post: item,
+                  onLike: () async {
+                    try {
+                      await Provider.of<FeedProvider>(
+                        context,
+                        listen: false,
+                      ).toggleLike(item.id);
+                    } catch (e) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              e.toString().replaceAll('Exception: ', ''),
+                            ),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    }
+                  },
+                  onReply: () => _replyToPost(item.id),
+                  onDelete: () => _deletePost(item.id),
+                  isOwnPost: item.userLogin == _currentUserLogin,
+                );
+              }
+              return const SizedBox.shrink();
             },
           );
   }

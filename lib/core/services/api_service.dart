@@ -280,6 +280,20 @@ class ApiService {
     }
   }
 
+  Future<List<Post>> getPostReplies(int postId, {int page = 1}) async {
+    final headers = await _getAuthHeaders();
+    final response = await http.get(
+      Uri.parse('$_baseUrl/posts/$postId/replies?page=$page'),
+      headers: headers,
+    );
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+      return data.map((postJson) => Post.fromJson(postJson)).toList();
+    } else {
+      throw Exception('Erro ao buscar respostas: ${response.body}');
+    }
+  }
+
   Future<void> deletePost(int postId) async {
     final headers = await _getAuthHeaders();
 

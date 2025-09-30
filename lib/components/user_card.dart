@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:papa_capim/core/models/user_model.dart';
 import 'package:papa_capim/themes/theme.dart';
 
 class UserCard extends StatelessWidget {
-  final Map<String, dynamic> user;
+  final User user;
   final VoidCallback onFollow;
   final VoidCallback onTap;
 
@@ -25,7 +26,7 @@ class UserCard extends StatelessWidget {
             radius: 20,
             backgroundColor: themeData().colorScheme.primary,
             child: Text(
-              user['name'].toString().substring(0, 1).toUpperCase(),
+              user.name.substring(0, 1).toUpperCase(),
               style: TextStyle(
                 color: themeData().colorScheme.surface,
                 fontWeight: FontWeight.bold,
@@ -33,7 +34,7 @@ class UserCard extends StatelessWidget {
             ),
           ),
           title: Text(
-            user['name'],
+            user.name,
             style: TextStyle(
               color: themeData().colorScheme.primary,
               fontWeight: FontWeight.bold,
@@ -43,13 +44,11 @@ class UserCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '@${user['login']}',
-                style: TextStyle(
-                  color: themeData().colorScheme.tertiary,
-                ),
+                '@${user.login}',
+                style: TextStyle(color: themeData().colorScheme.tertiary),
               ),
               Text(
-                '${user['followersCount']} seguidores',
+                '${user.followersCount} seguidores',
                 style: TextStyle(
                   color: themeData().colorScheme.tertiary,
                   fontSize: 12,
@@ -60,7 +59,7 @@ class UserCard extends StatelessWidget {
           trailing: ElevatedButton(
             onPressed: onFollow,
             style: ElevatedButton.styleFrom(
-              backgroundColor: user['isFollowing']
+              backgroundColor: user.isFollowing
                   ? themeData().colorScheme.tertiary
                   : themeData().colorScheme.primary,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -69,7 +68,7 @@ class UserCard extends StatelessWidget {
               ),
             ),
             child: Text(
-              user['isFollowing'] ? 'Seguindo' : 'Seguir',
+              user.isFollowing ? 'Seguindo' : 'Seguir',
               style: TextStyle(
                 color: themeData().colorScheme.surface,
                 fontSize: 12,

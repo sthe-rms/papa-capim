@@ -33,11 +33,25 @@ class FeedProvider with ChangeNotifier {
       if (_posts.length < 10) {
         _hasMorePosts = false;
       }
+      await _fetchRepliesForPosts(_posts);
     } catch (e) {
       _errorMessage = e.toString();
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  Future<void> _fetchRepliesForPosts(List<Post> posts) async {
+    for (var post in posts) {
+      if (post.postId == null) {
+        try {
+          final replies = await _apiService.getPostReplies(post.id);
+          post.replies = replies;
+        } catch (e) {
+          print("Erro ao buscar respostas para o post ${post.id}: $e");
+        }
+      }
     }
   }
 
@@ -54,6 +68,7 @@ class FeedProvider with ChangeNotifier {
       if (newPosts.isEmpty) {
         _hasMorePosts = false;
       } else {
+        await _fetchRepliesForPosts(newPosts);
         _posts.addAll(newPosts);
       }
     } catch (e) {
