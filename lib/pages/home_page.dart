@@ -3,15 +3,15 @@ import 'package:papa_capim/components/my_drawer.dart';
 import 'package:papa_capim/components/post_card.dart';
 import 'package:papa_capim/components/create_post_modal.dart';
 import 'package:papa_capim/core/providers/feed_provider.dart';
+import 'package:papa_capim/core/providers/users_provider.dart';
 import 'package:papa_capim/pages/post_detail_page.dart';
 import 'package:papa_capim/themes/theme.dart';
 import 'package:papa_capim/components/user_card.dart';
 import 'package:provider/provider.dart';
 import '../core/models/post_model.dart';
-import '../core/models/user_model.dart';
-import '../core/services/api_service.dart';
 import '../core/services/auth_service.dart';
 import '../components/reply_post_modal.dart';
+import 'profile_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -23,7 +23,6 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage>
     with SingleTickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
-  List<User> _userResults = [];
   List<Post> _postResults = [];
   bool _isSearching = false;
   String? _currentUserLogin;
@@ -81,6 +80,15 @@ class _HomePageState extends State<HomePage>
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => PostDetailPage(postId: postId)),
+    );
+  }
+
+  void _navigateToProfile(String userLogin) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ProfilePage(userLogin: userLogin),
+      ),
     );
   }
 
@@ -146,42 +154,17 @@ class _HomePageState extends State<HomePage>
     }
   }
 
-  void _search(String query) async {
-    if (query.isEmpty) {
-      setState(() {
-        _userResults.clear();
-        _postResults.clear();
-      });
-      return;
-    }
-
-    try {
-      final apiService = Provider.of<ApiService>(context, listen: false);
-      final users = await apiService.searchUsers(query);
-      final posts = await apiService.getPosts(search: query);
-
-      setState(() {
-        _userResults = users;
-        _postResults = posts;
-      });
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erro ao buscar: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
+  void _searchUsers(String query) {
+    Provider.of<UsersProvider>(context, listen: false).searchUsers(query);
   }
 
   void _clearSearch() {
     setState(() {
       _searchController.clear();
       _isSearching = false;
-      _userResults.clear();
       _postResults.clear();
+      // Limpa também o provider de usuários
+      Provider.of<UsersProvider>(context, listen: false).searchUsers('');
     });
   }
 
@@ -253,7 +236,7 @@ class _HomePageState extends State<HomePage>
     return TextField(
       controller: _searchController,
       autofocus: true,
-      onChanged: _search,
+      onChanged: _searchUsers,
       decoration: InputDecoration(
         hintText: 'Buscar...',
         hintStyle: TextStyle(color: themeData().colorScheme.tertiary),
@@ -271,21 +254,61 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget _buildUserResultsList() {
-    if (_userResults.isEmpty) {
-      return Center(
-        child: Text(
-          _searchController.text.isEmpty
-              ? 'Digite para buscar usuários'
-              : 'Nenhum usuário encontrado',
-          style: TextStyle(color: themeData().colorScheme.tertiary),
-        ),
-      );
-    }
-    return ListView.builder(
-      itemCount: _userResults.length,
-      itemBuilder: (context, index) {
-        final user = _userResults[index];
-        return UserCard(user: user, onFollow: () {}, onTap: () {});
+    return Consumer<UsersProvider>(
+      builder: (context, provider, child) {
+        if (provider.isLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (provider.errorMessage != null) {
+          return Center(child: Text(provider.errorMessage!));
+        }
+
+        if (provider.users.isEmpty) {
+          return Center(
+            child: Text(
+              _searchController.text.isEmpty
+                  ? 'Digite para buscar usuários'
+                  : 'Nenhum usuário encontrado',
+              style: TextStyle(color: themeData().colorScheme.tertiary),
+            ),
+          );
+        }
+
+        return ListView.builder(
+          itemCount: provider.users.length,
+          itemBuilder: (context, index) {
+            final user = provider.users[index];
+            // Não mostrar o botão de seguir no próprio perfil
+            if (user.login == _currentUserLogin) {
+              return UserCard(
+                user: user,
+                onFollow: () {}, // Ação vazia
+                onTap: () => _navigateToProfile(user.login),
+              );
+            }
+            return UserCard(
+              user: user,
+              onFollow: () async {
+                try {
+                  await provider.toggleFollow(user.login);
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          e.toString().replaceAll('Exception: ', ''),
+                        ),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
+              },
+              onTap: () => _navigateToProfile(user.login),
+            );
+          },
+        );
       },
     );
   }

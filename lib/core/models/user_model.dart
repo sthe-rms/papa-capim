@@ -23,7 +23,7 @@ class User {
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: json['id'] ?? 0, // Correção aplicada aqui
+      id: json['id'] ?? 0,
       login: json['login'],
       name: json['name'],
       followersCount: json['followers_count'] ?? 0,
@@ -32,6 +32,30 @@ class User {
       followId: json['follow_id'],
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
+    );
+  }
+
+  // MÉTODO CORRIGIDO
+  User copyWith({
+    int? id,
+    String? login,
+    String? name,
+    int? followersCount,
+    int? followingCount,
+    bool? isFollowing,
+    int? followId,
+    bool forceFollowIdToNull = false,
+  }) {
+    return User(
+      id: id ?? this.id,
+      login: login ?? this.login,
+      name: name ?? this.name,
+      followersCount: followersCount ?? this.followersCount,
+      followingCount: followingCount ?? this.followingCount,
+      isFollowing: isFollowing ?? this.isFollowing,
+      followId: forceFollowIdToNull ? null : followId ?? this.followId,
+      createdAt: this.createdAt, // Corrigido: Campo obrigatório adicionado
+      updatedAt: this.updatedAt, // Corrigido: Campo obrigatório adicionado
     );
   }
 }

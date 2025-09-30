@@ -1,30 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:papa_capim/components/my_bio_box.dart';
+import 'package:papa_capim/core/services/auth_service.dart';
 import 'package:provider/provider.dart';
 import '../core/providers/profile_provider.dart';
 import 'package:papa_capim/themes/theme.dart';
 import '../pages/edit_profile_page.dart';
 
 class ProfilePage extends StatefulWidget {
-  const ProfilePage({super.key});
+  final String? userLogin;
+  const ProfilePage({super.key, this.userLogin});
 
   @override
   State<ProfilePage> createState() => _ProfilePageState();
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  String? _currentUserLogin;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadProfile();
+      _loadData();
     });
+  }
+
+  void _loadData() async {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    _currentUserLogin = await authService.getCurrentUserLogin();
+    _loadProfile();
   }
 
   void _loadProfile() {
     final provider = Provider.of<ProfileProvider>(context, listen: false);
     provider.clearError();
-    provider.fetchProfile();
+    provider.fetchProfile(userLogin: widget.userLogin);
   }
 
   @override
@@ -46,7 +56,7 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
       body: Consumer<ProfileProvider>(
         builder: (context, provider, child) {
-          if (provider.isLoading) {
+          if (provider.isLoading || provider.user == null) {
             return const Center(child: CircularProgressIndicator());
           }
 
@@ -55,7 +65,7 @@ class _ProfilePageState extends State<ProfilePage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.error_outline, size: 64, color: Colors.red),
+                  const Icon(Icons.error_outline, size: 64, color: Colors.red),
                   const SizedBox(height: 16),
                   Text(
                     'Erro ao carregar perfil',
@@ -80,11 +90,8 @@ class _ProfilePageState extends State<ProfilePage> {
             );
           }
 
-          if (provider.user == null) {
-            return const Center(
-              child: Text('Nenhum dado de perfil disponível'),
-            );
-          }
+          final user = provider.user!;
+          final isOwnProfile = _currentUserLogin == user.login;
 
           return ListView(
             children: [
@@ -96,37 +103,107 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               const SizedBox(height: 10),
               Text(
-                provider.user!.login,
+                user.login,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: themeData().colorScheme.primary,
                   fontSize: 16,
                 ),
               ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Column(
+                    children: [
+                      Text(
+                        user.followersCount.toString(),
+                        style: TextStyle(
+                          color: themeData().colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        'Seguidores',
+                        style: TextStyle(
+                          color: themeData().colorScheme.tertiary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(width: 20),
+                  Column(
+                    children: [
+                      Text(
+                        user.followingCount.toString(),
+                        style: TextStyle(
+                          color: themeData().colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        'Seguindo',
+                        style: TextStyle(
+                          color: themeData().colorScheme.tertiary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              if (!isOwnProfile)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 50.0),
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      try {
+                        await provider.toggleFollow(user.login);
+                      } catch (e) {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                e.toString().replaceAll('Exception: ', ''),
+                              ),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: user.isFollowing
+                          ? themeData().colorScheme.tertiary
+                          : themeData().colorScheme.primary,
+                      foregroundColor: user.isFollowing
+                          ? themeData().colorScheme.primary
+                          : themeData().colorScheme.surface,
+                    ),
+                    child: Text(user.isFollowing ? 'Seguindo' : 'Seguir'),
+                  ),
+                ),
               const SizedBox(height: 50),
               Padding(
                 padding: const EdgeInsets.only(left: 25.0),
                 child: Text(
-                  'Meus Detalhes',
+                  'Detalhes',
                   style: TextStyle(color: themeData().colorScheme.tertiary),
                 ),
               ),
               MyBioBox(
-                text: provider.user!.name,
+                text: user.name,
                 sectionName: 'Nome',
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const EditProfilePage(),
-                    ),
-                  );
-                },
-              ),
-              MyBioBox(
-                text: provider.user!.login,
-                sectionName: 'Usuário',
-                onPressed: () {},
+                onPressed: isOwnProfile
+                    ? () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const EditProfilePage(),
+                          ),
+                        ).then((_) => _loadProfile()); // Recarrega após edição
+                      }
+                    : null, // Desabilita o botão se não for o próprio perfil
               ),
               const SizedBox(height: 50),
             ],

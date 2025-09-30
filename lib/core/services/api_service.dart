@@ -25,15 +25,9 @@ class ApiService {
     return {'Content-Type': 'application/json', 'x-session-token': token};
   }
 
-  Future<User> getMyProfile() async {
+  Future<User> getUserProfile(String login) async {
     final headers = await _getAuthHeaders();
-    final userLogin = await _storageService.readUserLogin();
-
-    if (userLogin == null) {
-      throw Exception('UserLogin não encontrado no storage');
-    }
-
-    final encodedLogin = Uri.encodeComponent(userLogin);
+    final encodedLogin = Uri.encodeComponent(login);
     final url = '$_baseUrl/users/$encodedLogin';
     print('[API SERVICE] Fetching profile from: $url');
 
@@ -44,12 +38,20 @@ class ApiService {
     if (response.statusCode == 200) {
       return User.fromJson(jsonDecode(response.body));
     } else if (response.statusCode == 404) {
-      throw Exception('Usuário "$userLogin" não encontrado na API');
+      throw Exception('Usuário "$login" não encontrado na API');
     } else {
       throw Exception(
         'Erro ${response.statusCode} ao carregar perfil: ${response.body}',
       );
     }
+  }
+
+  Future<User> getMyProfile() async {
+    final userLogin = await _storageService.readUserLogin();
+    if (userLogin == null) {
+      throw Exception('UserLogin não encontrado no storage');
+    }
+    return getUserProfile(userLogin);
   }
 
   Future<void> debugStorage() async {
