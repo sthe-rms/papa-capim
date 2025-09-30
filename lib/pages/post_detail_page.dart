@@ -92,10 +92,10 @@ class _PostDetailPageState extends State<PostDetailPage> {
                   onLike: () => provider.toggleLike(post.id),
                   onReply: () => _replyToPost(post.id),
                   onDelete: () {
-                    // Implementar lógica de deleção se necessário
+                    
                   },
-                  isOwnPost: false, // Defina com base na lógica do seu app
-                  onTap: () {}, // Sem ação de toque aqui
+                  isOwnPost: false, 
+                  onTap: () {}, 
                 ),
                 const Padding(
                   padding: EdgeInsets.all(16.0),
@@ -118,7 +118,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                       onLike: () => provider.toggleReplyLike(reply.id),
                       onReply: () => _replyToPost(reply.id),
                       onDelete: () {},
-                      isOwnPost: false, // Defina com base na lógica do seu app
+                      isOwnPost: false, 
                       onTap: () {},
                     ),
                   ),

@@ -201,9 +201,9 @@ class _ProfilePageState extends State<ProfilePage> {
                           MaterialPageRoute(
                             builder: (context) => const EditProfilePage(),
                           ),
-                        ).then((_) => _loadProfile()); // Recarrega após edição
+                        ).then((_) => _loadProfile()); 
                       }
-                    : null, // Desabilita o botão se não for o próprio perfil
+                    : null, 
               ),
               const SizedBox(height: 50),
             ],

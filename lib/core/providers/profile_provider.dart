@@ -17,7 +17,6 @@ class ProfileProvider with ChangeNotifier {
   Future<void> fetchProfile({String? userLogin}) async {
     _isLoading = true;
     _errorMessage = null;
-    // Limpa o usuário anterior para não mostrar dados antigos enquanto carrega
     _user = null;
     notifyListeners();
 
@@ -42,7 +41,6 @@ class ProfileProvider with ChangeNotifier {
 
     final originalUser = _user!;
 
-    // Atualização otimista da UI
     _user = originalUser.copyWith(
       isFollowing: !originalUser.isFollowing,
       followersCount: originalUser.isFollowing

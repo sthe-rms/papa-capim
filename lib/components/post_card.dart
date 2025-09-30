@@ -7,7 +7,7 @@ class PostCard extends StatelessWidget {
   final VoidCallback onLike;
   final VoidCallback onReply;
   final VoidCallback onDelete;
-  final VoidCallback? onTap; // Adicionado
+  final VoidCallback? onTap; 
   final bool isOwnPost;
 
   const PostCard({
@@ -17,7 +17,7 @@ class PostCard extends StatelessWidget {
     required this.onReply,
     required this.onDelete,
     required this.isOwnPost,
-    this.onTap, // Adicionado
+    this.onTap, 
   });
 
   String _formatTimeAgo(DateTime date) {
@@ -34,7 +34,7 @@ class PostCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap, // Adicionado
+      onTap: onTap, 
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
         padding: const EdgeInsets.all(16),
@@ -64,7 +64,7 @@ class PostCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        post.userLogin, // Idealmente, seria o nome do usuário
+                        post.userLogin, 
                         style: TextStyle(
                           color: themeData().colorScheme.primary,
                           fontWeight: FontWeight.bold,
@@ -138,7 +138,7 @@ class PostCard extends StatelessWidget {
                 ),
                 Text(
                   post.replies.length
-                      .toString(), // Atualizado para mostrar o número de respostas
+                      .toString(), 
                   style: TextStyle(
                     color: themeData().colorScheme.tertiary,
                     fontSize: 12,

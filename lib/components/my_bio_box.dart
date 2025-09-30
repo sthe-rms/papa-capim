@@ -28,10 +28,8 @@ class MyBioBox extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Nome da seção
               Text(sectionName, style: TextStyle(color: Colors.grey[500])),
 
-              // Botão de editar
               IconButton(
                 onPressed: onPressed,
                 icon: Icon(Icons.settings, color: Colors.grey[400]),

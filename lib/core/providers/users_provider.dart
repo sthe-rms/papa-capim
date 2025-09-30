@@ -49,7 +49,6 @@ class UsersProvider with ChangeNotifier {
     );
     notifyListeners();
 
-    // Chamada à API
     try {
       if (originalUser.isFollowing) {
         if (originalUser.followId != null) {

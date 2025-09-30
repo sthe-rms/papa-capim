@@ -8,7 +8,6 @@ class FeedProvider with ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
 
-  // Variáveis para paginação
   int _currentPage = 1;
   bool _hasMorePosts = true;
   bool _isLoadingMore = false;
@@ -20,7 +19,6 @@ class FeedProvider with ChangeNotifier {
   bool get isLoadingMore => _isLoadingMore;
   String? get errorMessage => _errorMessage;
 
-  // Carrega a primeira página de posts ou recarrega tudo do início
   Future<void> fetchFeed() async {
     _isLoading = true;
     _errorMessage = null;
@@ -55,7 +53,6 @@ class FeedProvider with ChangeNotifier {
     }
   }
 
-  // Carrega as páginas seguintes
   Future<void> loadMorePosts() async {
     if (_isLoadingMore || !_hasMorePosts) return;
 
@@ -73,7 +70,7 @@ class FeedProvider with ChangeNotifier {
       }
     } catch (e) {
       _errorMessage = e.toString();
-      _currentPage--; // Reverte a página em caso de erro
+      _currentPage--; 
     } finally {
       _isLoadingMore = false;
       notifyListeners();
@@ -118,7 +115,6 @@ class FeedProvider with ChangeNotifier {
 
     final originalPost = _posts[postIndex];
 
-    // Atualização otimista da UI
     _posts[postIndex] = originalPost.copyWith(
       isLiked: !originalPost.isLiked,
       likesCount: originalPost.isLiked
@@ -127,7 +123,6 @@ class FeedProvider with ChangeNotifier {
     );
     notifyListeners();
 
-    // Chamada à API
     try {
       if (originalPost.isLiked) {
         if (originalPost.likeId != null) {

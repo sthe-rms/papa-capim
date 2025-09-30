@@ -35,7 +35,6 @@ class User {
     );
   }
 
-  // MÉTODO CORRIGIDO
   User copyWith({
     int? id,
     String? login,
@@ -54,8 +53,8 @@ class User {
       followingCount: followingCount ?? this.followingCount,
       isFollowing: isFollowing ?? this.isFollowing,
       followId: forceFollowIdToNull ? null : followId ?? this.followId,
-      createdAt: this.createdAt, // Corrigido: Campo obrigatório adicionado
-      updatedAt: this.updatedAt, // Corrigido: Campo obrigatório adicionado
+      createdAt: this.createdAt, 
+      updatedAt: this.updatedAt, 
     );
   }
 }

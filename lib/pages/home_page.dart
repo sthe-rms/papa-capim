@@ -283,7 +283,7 @@ class _HomePageState extends State<HomePage>
             if (user.login == _currentUserLogin) {
               return UserCard(
                 user: user,
-                onFollow: () {}, // Ação vazia
+                onFollow: () {}, 
                 onTap: () => _navigateToProfile(user.login),
               );
             }
@@ -332,7 +332,21 @@ class _HomePageState extends State<HomePage>
           post: post,
           onTap: () => _navigateToPostDetail(post.id),
           onLike: () async {
-            // Lógica de like
+            try {
+              await Provider.of<FeedProvider>(context, listen: false)
+                  .toggleLike(post.id);
+            } catch (e) {
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      e.toString().replaceAll('Exception: ', ''),
+                    ),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            }
           },
           onReply: () => _replyToPost(post.id),
           onDelete: () => _deletePost(post.id),

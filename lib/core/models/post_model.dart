@@ -25,7 +25,7 @@ class Post {
 
   factory Post.fromJson(Map<String, dynamic> json) {
     return Post(
-      id: json['id'] ?? 0, // Correção aplicada aqui
+      id: json['id'] ?? 0, 
       userLogin: json['user_login'],
       postId: json['post_id'],
       message: json['message'],
