@@ -3,6 +3,7 @@ import 'package:papa_capim/components/my_drawer.dart';
 import 'package:papa_capim/components/post_card.dart';
 import 'package:papa_capim/components/create_post_modal.dart';
 import 'package:papa_capim/core/providers/feed_provider.dart';
+import 'package:papa_capim/pages/post_detail_page.dart';
 import 'package:papa_capim/themes/theme.dart';
 import 'package:papa_capim/components/user_card.dart';
 import 'package:provider/provider.dart';
@@ -19,25 +20,26 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage>
+    with SingleTickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
-  List<dynamic> _searchResults = [];
+  List<User> _userResults = [];
+  List<Post> _postResults = [];
   bool _isSearching = false;
   String? _currentUserLogin;
+  TabController? _tabController;
 
-  // Controller para a paginação
   final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadCurrentUserAndFeed();
     });
 
-    // Adiciona o listener para o scroll
     _scrollController.addListener(() {
-      // Se o usuário chegou ao final da lista, carrega mais posts
       if (_scrollController.position.pixels ==
           _scrollController.position.maxScrollExtent) {
         Provider.of<FeedProvider>(context, listen: false).loadMorePosts();
@@ -47,8 +49,9 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
-    // Limpa o controller para evitar vazamentos de memória
     _scrollController.dispose();
+    _searchController.dispose();
+    _tabController?.dispose();
     super.dispose();
   }
 
@@ -71,6 +74,13 @@ class _HomePageState extends State<HomePage> {
       isScrollControlled: true,
       backgroundColor: themeData().colorScheme.surface,
       builder: (context) => const CreatePostModal(),
+    );
+  }
+
+  void _navigateToPostDetail(int postId) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => PostDetailPage(postId: postId)),
     );
   }
 
@@ -137,13 +147,10 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _search(String query) async {
-    setState(() {
-      _isSearching = query.isNotEmpty;
-    });
-
     if (query.isEmpty) {
       setState(() {
-        _searchResults.clear();
+        _userResults.clear();
+        _postResults.clear();
       });
       return;
     }
@@ -154,7 +161,8 @@ class _HomePageState extends State<HomePage> {
       final posts = await apiService.getPosts(search: query);
 
       setState(() {
-        _searchResults = [...users, ...posts];
+        _userResults = users;
+        _postResults = posts;
       });
     } catch (e) {
       if (mounted) {
@@ -168,24 +176,12 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void _toggleFollow(int userId) {
-    // Lógica de seguir/deixar de seguir
-  }
-
-  void _viewUserProfile(User user) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Perfil de ${user.name}'),
-        backgroundColor: themeData().colorScheme.primary,
-      ),
-    );
-  }
-
   void _clearSearch() {
     setState(() {
       _searchController.clear();
       _isSearching = false;
-      _searchResults.clear();
+      _userResults.clear();
+      _postResults.clear();
     });
   }
 
@@ -232,6 +228,15 @@ class _HomePageState extends State<HomePage> {
                   tooltip: 'Atualizar feed',
                 ),
               ],
+        bottom: _isSearching
+            ? TabBar(
+                controller: _tabController,
+                tabs: const [
+                  Tab(text: 'Usuários'),
+                  Tab(text: 'Posts'),
+                ],
+              )
+            : null,
       ),
       floatingActionButton: _isSearching
           ? null
@@ -250,7 +255,7 @@ class _HomePageState extends State<HomePage> {
       autofocus: true,
       onChanged: _search,
       decoration: InputDecoration(
-        hintText: 'Buscar usuários e posts...',
+        hintText: 'Buscar...',
         hintStyle: TextStyle(color: themeData().colorScheme.tertiary),
         border: InputBorder.none,
       ),
@@ -259,66 +264,59 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildSearchResults() {
-    return _searchResults.isEmpty
-        ? Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.search_off,
-                  size: 64,
-                  color: themeData().colorScheme.tertiary,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  _searchController.text.isEmpty
-                      ? 'Digite para buscar usuários ou posts'
-                      : 'Nenhum resultado encontrado',
-                  style: TextStyle(color: themeData().colorScheme.tertiary),
-                ),
-              ],
-            ),
-          )
-        : ListView.builder(
-            itemCount: _searchResults.length,
-            itemBuilder: (context, index) {
-              final item = _searchResults[index];
-              if (item is User) {
-                return UserCard(
-                  user: item,
-                  onFollow: () => _toggleFollow(item.id),
-                  onTap: () => _viewUserProfile(item),
-                );
-              } else if (item is Post) {
-                return PostCard(
-                  post: item,
-                  onLike: () async {
-                    try {
-                      await Provider.of<FeedProvider>(
-                        context,
-                        listen: false,
-                      ).toggleLike(item.id);
-                    } catch (e) {
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              e.toString().replaceAll('Exception: ', ''),
-                            ),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                      }
-                    }
-                  },
-                  onReply: () => _replyToPost(item.id),
-                  onDelete: () => _deletePost(item.id),
-                  isOwnPost: item.userLogin == _currentUserLogin,
-                );
-              }
-              return const SizedBox.shrink();
-            },
-          );
+    return TabBarView(
+      controller: _tabController,
+      children: [_buildUserResultsList(), _buildPostResultsList()],
+    );
+  }
+
+  Widget _buildUserResultsList() {
+    if (_userResults.isEmpty) {
+      return Center(
+        child: Text(
+          _searchController.text.isEmpty
+              ? 'Digite para buscar usuários'
+              : 'Nenhum usuário encontrado',
+          style: TextStyle(color: themeData().colorScheme.tertiary),
+        ),
+      );
+    }
+    return ListView.builder(
+      itemCount: _userResults.length,
+      itemBuilder: (context, index) {
+        final user = _userResults[index];
+        return UserCard(user: user, onFollow: () {}, onTap: () {});
+      },
+    );
+  }
+
+  Widget _buildPostResultsList() {
+    if (_postResults.isEmpty) {
+      return Center(
+        child: Text(
+          _searchController.text.isEmpty
+              ? 'Digite para buscar posts'
+              : 'Nenhum post encontrado',
+          style: TextStyle(color: themeData().colorScheme.tertiary),
+        ),
+      );
+    }
+    return ListView.builder(
+      itemCount: _postResults.length,
+      itemBuilder: (context, index) {
+        final post = _postResults[index];
+        return PostCard(
+          post: post,
+          onTap: () => _navigateToPostDetail(post.id),
+          onLike: () async {
+            // Lógica de like
+          },
+          onReply: () => _replyToPost(post.id),
+          onDelete: () => _deletePost(post.id),
+          isOwnPost: post.userLogin == _currentUserLogin,
+        );
+      },
+    );
   }
 
   Widget _buildFeed() {
@@ -341,20 +339,13 @@ class _HomePageState extends State<HomePage> {
         }
 
         if (provider.posts.isEmpty) {
-          return Center(
+          return const Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  Icons.feed_outlined,
-                  size: 64,
-                  color: themeData().colorScheme.tertiary,
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Nenhuma postagem no feed.',
-                  style: TextStyle(color: Colors.grey),
-                ),
+                Icon(Icons.feed_outlined, size: 64),
+                SizedBox(height: 16),
+                Text('Nenhuma postagem no feed.'),
               ],
             ),
           );
@@ -379,6 +370,7 @@ class _HomePageState extends State<HomePage> {
               final post = provider.posts[index];
               return PostCard(
                 post: post,
+                onTap: () => _navigateToPostDetail(post.id),
                 onLike: () async {
                   try {
                     await provider.toggleLike(post.id);

@@ -79,7 +79,6 @@ class ApiService {
     final response = await http.get(uri, headers: headers);
 
     print('[API SERVICE] Posts Response Status Code: ${response.statusCode}');
-    // LINHA ADICIONADA PARA DEBUG:
     print('[API SERVICE] Posts Response Body: ${response.body}');
 
     if (response.statusCode == 200) {
@@ -87,6 +86,20 @@ class ApiService {
       return data.map((postJson) => Post.fromJson(postJson)).toList();
     } else {
       throw Exception('Erro ao buscar postagens: ${response.body}');
+    }
+  }
+
+  Future<Post> getPostDetails(int postId) async {
+    final headers = await _getAuthHeaders();
+    final response = await http.get(
+      Uri.parse('$_baseUrl/posts/$postId'),
+      headers: headers,
+    );
+
+    if (response.statusCode == 200) {
+      return Post.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception('Erro ao buscar detalhes do post: ${response.body}');
     }
   }
 
@@ -157,8 +170,9 @@ class ApiService {
     final Map<String, dynamic> userData = {};
     if (name != null) userData['name'] = name;
     if (password != null) userData['password'] = password;
-    if (passwordConfirmation != null)
+    if (passwordConfirmation != null) {
       userData['password_confirmation'] = passwordConfirmation;
+    }
 
     final response = await http.patch(
       Uri.parse('$_baseUrl/users/$login'),
